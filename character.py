@@ -15,7 +15,7 @@ class Character:
         self.walking = True
 
 
-        self.x, self.y = 400, 300
+        self.x, self.y = 368, 268
         self.speed = 100  # pixels por segundo
 
     def get_num_columns(self, sprite):
@@ -73,7 +73,6 @@ def generate_head(skin_color):
     return {
         "Name": "Head",
         "Idle": pygame.image.load(f'assets/characters/heads/{skin_color}/Idle.png').convert_alpha(),
-        "Combat 1h - Idle": pygame.image.load(f'assets/characters/heads/{skin_color}/Combat 1h - Idle.png').convert_alpha(),
         "Run": pygame.image.load(f'assets/characters/heads/{skin_color}/Run.png').convert_alpha(),
         "Emotes": pygame.image.load(f'assets/characters/heads/{skin_color}/Emotes.png').convert_alpha(),
         "Walk": pygame.image.load(f'assets/characters/heads/{skin_color}/Walk.png').convert_alpha()
@@ -84,7 +83,6 @@ def generate_body(skin_color):
     return {
         "Name": "Body",
         "Idle": pygame.image.load(f'assets/characters/body/{skin_color}/Idle.png').convert_alpha(),
-        "Combat 1h - Idle": pygame.image.load(f'assets/characters/body/{skin_color}/Combat 1h - Idle.png').convert_alpha(),
         "Run": pygame.image.load(f'assets/characters/body/{skin_color}/Run.png').convert_alpha(),
         "Emotes": pygame.image.load(f'assets/characters/body/{skin_color}/Emotes.png').convert_alpha(),
         "Walk": pygame.image.load(f'assets/characters/body/{skin_color}/Walk.png').convert_alpha(),
@@ -97,7 +95,6 @@ def generate_hair(hair_color):
     return {
         "Name": "Hair",
         "Idle": pygame.image.load(f'assets/characters/hairs/{hair_style}/{hair_color}/Idle.png').convert_alpha(),
-        "Combat 1h - Idle": pygame.image.load(f'assets/characters/hairs/{hair_style}/{hair_color}/Combat 1h - Idle.png').convert_alpha(),
         "Run": pygame.image.load(f'assets/characters/hairs/{hair_style}/{hair_color}/Run.png').convert_alpha(),
         "Emotes": pygame.image.load(f'assets/characters/hairs/{hair_style}/{hair_color}/Emotes.png').convert_alpha(),
         "Walk": pygame.image.load(f'assets/characters/hairs/{hair_style}/{hair_color}/Walk.png').convert_alpha()
@@ -109,7 +106,6 @@ def generate_eyes():
     return {
         "Name": "Eyes",
         "Idle": pygame.image.load(f'assets/characters/eyes/{eye_color}/Idle.png').convert_alpha(),
-        "Combat 1h - Idle": pygame.image.load(f'assets/characters/eyes/{eye_color}/Combat 1h - Idle.png').convert_alpha(),
         "Run": pygame.image.load(f'assets/characters/eyes/{eye_color}/Run.png').convert_alpha(),
         "Emotes": pygame.image.load(f'assets/characters/eyes/{eye_color}/Emotes.png').convert_alpha(),
         "Walk": pygame.image.load(f'assets/characters/eyes/{eye_color}/Walk.png').convert_alpha()
@@ -122,7 +118,6 @@ def generate_eyebrowns(hair_color):
     return {
         "Name": "Eyebrowns",
         "Idle": pygame.image.load(f'assets/characters/eyebrowns/{eyebrown_type}/{hair_color}/Idle.png').convert_alpha(),
-        "Combat 1h - Idle": pygame.image.load(f'assets/characters/eyebrowns/{eyebrown_type}/{hair_color}/Combat 1h - Idle.png').convert_alpha(),
         "Run": pygame.image.load(f'assets/characters/eyebrowns/{eyebrown_type}/{hair_color}/Run.png').convert_alpha(),
         "Emotes": pygame.image.load(f'assets/characters/eyebrowns/{eyebrown_type}/{hair_color}/Emotes.png').convert_alpha(),
         "Walk": pygame.image.load(f'assets/characters/eyebrowns/{eyebrown_type}/{hair_color}/Walk.png').convert_alpha()
@@ -138,7 +133,6 @@ def generate_facial_hair(hair_color):
     return {
         "Name": "Facial Hair",
         "Idle": pygame.image.load(f'assets/characters/facial_hair/{facial_hair_type}/{hair_color}/Idle.png').convert_alpha(),
-        "Combat 1h - Idle": pygame.image.load(f'assets/characters/facial_hair/{facial_hair_type}/{hair_color}/Combat 1h - Idle.png').convert_alpha(),
         "Run": pygame.image.load(f'assets/characters/facial_hair/{facial_hair_type}/{hair_color}/Run.png').convert_alpha(),
         "Emotes": pygame.image.load(f'assets/characters/facial_hair/{facial_hair_type}/{hair_color}/Emotes.png').convert_alpha(),
         "Walk": pygame.image.load(f'assets/characters/facial_hair/{facial_hair_type}/{hair_color}/Walk.png').convert_alpha()
@@ -153,7 +147,6 @@ def generate_torso():
     return {
         "Name": "Torso",
         "Idle": pygame.image.load(f'assets/characters/torsos/{torso_type}/{torso_color}/Idle.png').convert_alpha(),
-        "Combat 1h - Idle": pygame.image.load(f'assets/characters/torsos/{torso_type}/{torso_color}/Combat 1h - Idle.png').convert_alpha(),
         "Run": pygame.image.load(f'assets/characters/torsos/{torso_type}/{torso_color}/Run.png').convert_alpha(),
         "Emotes": pygame.image.load(f'assets/characters/torsos/{torso_type}/{torso_color}/Emotes.png').convert_alpha(),
         "Walk": pygame.image.load(f'assets/characters/torsos/{torso_type}/{torso_color}/Walk.png').convert_alpha()
@@ -168,7 +161,6 @@ def generate_legs():
     return {
         "Name": "Legs",
         "Idle": pygame.image.load(f'assets/characters/legs/{leg_type}/{leg_color}/Idle.png').convert_alpha(),
-        "Combat 1h - Idle": pygame.image.load(f'assets/characters/legs/{leg_type}/{leg_color}/Combat 1h - Idle.png').convert_alpha(),
         "Run": pygame.image.load(f'assets/characters/legs/{leg_type}/{leg_color}/Run.png').convert_alpha(),
         "Emotes": pygame.image.load(f'assets/characters/legs/{leg_type}/{leg_color}/Emotes.png').convert_alpha(),
         "Walk": pygame.image.load(f'assets/characters/legs/{leg_type}/{leg_color}/Walk.png').convert_alpha()
@@ -183,7 +175,6 @@ def generate_feet():
     return {
         "Name": "Feet",
         "Idle": pygame.image.load(f'assets/characters/feet/{foot_type}/{foot_color}/Idle.png').convert_alpha(),
-        "Combat 1h - Idle": pygame.image.load(f'assets/characters/feet/{foot_type}/{foot_color}/Combat 1h - Idle.png').convert_alpha(),
         "Run": pygame.image.load(f'assets/characters/feet/{foot_type}/{foot_color}/Run.png').convert_alpha(),
         "Emotes": pygame.image.load(f'assets/characters/feet/{foot_type}/{foot_color}/Emotes.png').convert_alpha(),
         "Walk": pygame.image.load(f'assets/characters/feet/{foot_type}/{foot_color}/Walk.png').convert_alpha()

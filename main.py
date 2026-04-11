@@ -5,6 +5,7 @@ class Game:
     def __init__(self):
         from character import generate_character
         from tileset import TileSet
+        from map_models.maps import maps
 
         pygame.init()
 
@@ -13,50 +14,9 @@ class Game:
 
         self.TILE_SIZE = 32
 
-        self.map_layers = {
-            "dirt": [
-                [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [-1, -1, -1, -1, -1, 10, 10, 10, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
-            ],
-            "grass": [
-                [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [10, 10, 10, 10, 10,  1, 13, 13, 13, 13, 13, 13, 13, 13, 13,  2, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [13, 13, 13, 13, 13, 14, -1, -1, -1, -1, -1, -1, -1, -1, -1, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13],
-                [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [ 7,  7,  7,  7,  7,  8, -1, -1,  6,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7],
-                [10, 10, 10, 10, 10, 11, -1, -1,  9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [10, 10, 10, 10, 10, 11, -1, -1,  9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [10, 10, 10, 10, 10, 11, -1, -1,  9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [10, 10, 10, 10, 10, 11, -1, -1,  9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [10, 10, 10, 10, 10, 11, -1, -1,  9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [10, 10, 10, 10, 10, 11, -1, -1,  9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [10, 10, 10, 10, 10, 11, -1, -1,  9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [10, 10, 10, 10, 10, 11, -1, -1, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13],
-                [10, 10, 10, 10, 10, 11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-                [10, 10, 10, 10, 10, 11, -1, -1,  6,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7],
-                [10, 10, 10, 10, 10, 11, -1, -1,  9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [10, 10, 10, 10, 10, 11, -1, -1,  9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
-                [10, 10, 10, 10, 10, 11, -1, -1,  9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
-            ]
-        }
+        self.map_layers = maps["corner_5"]["model_1"]
+
+        self.generate_grass_from_dirt()
 
         self.randomizar_tiles(self.map_layers)
 
@@ -64,6 +24,12 @@ class Game:
             "grass": TileSet("map_assets/tiles/grass.png", self.TILE_SIZE),
             "dirt": TileSet("map_assets/tiles/dirt.png", self.TILE_SIZE)
         }
+
+        self.map_width = len(self.map_layers["grass"][0]) * self.TILE_SIZE
+        self.map_height = len(self.map_layers["grass"]) * self.TILE_SIZE
+
+        self.camera_x = 0
+        self.camera_y = 0
 
         self.last_press_time = {
             pygame.K_LEFT: 0,
@@ -80,10 +46,84 @@ class Game:
         self.character.run_direction = None
 
         self.running = True
+
+    def get_tile(self, grid, x, y):
+        if y < 0 or y >= len(grid) or x < 0 or x >= len(grid[0]):
+            return 10
+        return grid[y][x]
+    
+    def generate_grass_from_dirt(self):
+        dirt = self.map_layers["dirt"]
+        height = len(dirt)
+        width = len(dirt[0])
+
+        grass = [[-1 for _ in range(width)] for _ in range(height)]
+
+        for y in range(height):
+            for x in range(width):
+
+                top = self.get_tile(dirt, x, y - 1)
+                bottom = self.get_tile(dirt, x, y + 1)
+                left = self.get_tile(dirt, x - 1, y)
+                right = self.get_tile(dirt, x + 1, y)
+
+                tl = self.get_tile(dirt, x - 1, y - 1)
+                tr = self.get_tile(dirt, x + 1, y - 1)
+                bl = self.get_tile(dirt, x - 1, y + 1)
+                br = self.get_tile(dirt, x + 1, y + 1)
+
+                if dirt[y][x] != 10:
+                    grass[y][x] = 10
+                    continue
+
+                tile = -1
+
+                # ───── BORDAS ─────
+                if top == -1:
+                    tile = 13  # borda superior
+
+                elif bottom == -1:
+                    tile = 7  # borda inferior
+
+                elif left == -1:
+                    tile = 11  # borda esquerda
+
+                elif right == -1:
+                    tile = 9  # borda direita
+
+                # ───── CANTOS ─────
+                if top == -1 and left == -1:
+                    tile = 1  # canto sup esquerdo
+
+                elif top == -1 and right == -1:
+                    tile = 2  # canto sup direito
+
+                elif bottom == -1 and left == -1:
+                    tile = 4  # canto inf esquerdo
+
+                elif bottom == -1 and right == -1:
+                    tile = 5  # canto inf direito
+                
+                # ───── CANTOS INTERNOS (detalhe fino) ─────
+                if top == 10 and left == 10 and tl == -1:
+                    tile = 14  # canto interno sup esquerdo
+
+                elif top == 10 and right == 10 and tr == -1:
+                    tile = 12  # canto interno sup direito
+
+                elif bottom == 10 and left == 10 and bl == -1:
+                    tile = 8  # canto interno inf esquerdo
+
+                elif bottom == 10 and right == 10 and br == -1:
+                    tile = 6  # canto interno inf direito
+
+                grass[y][x] = tile
+
+        self.map_layers["grass"] = grass
     
 
     
-    def randomizar_tiles(self, map_layers, chance=0.1):
+    def randomizar_tiles(self, map_layers, chance=0.3):
         import random
 
         for layer_name, layer in map_layers.items():
@@ -107,10 +147,13 @@ class Game:
                     continue
 
                 tile = tileset.tiles[tile_index]
-                x = col_index * self.TILE_SIZE
-                y = row_index * self.TILE_SIZE
 
-                self.screen.blit(tile, (x, y))
+                x = col_index * self.TILE_SIZE - self.camera_x
+                y = row_index * self.TILE_SIZE - self.camera_y
+
+                # só desenha o que aparece na tela (performance)
+                if -32 < x < 800 and -32 < y < 600:
+                    self.screen.blit(tile, (x, y))
     
 
     def draw_maps(self):
@@ -129,6 +172,7 @@ class Game:
         
         elif mode == "mixed":
             return [random.choice(value) for _ in range(length)]
+
     def run(self):
         while self.running:
             dt = self.clock.tick(60)
@@ -185,6 +229,12 @@ class Game:
 
                 self.character.x += dx * speed * dt / 1000
                 self.character.y += dy * speed * dt / 1000
+
+                half = 32
+
+                self.character.x = max(half - 12, min(self.character.x, self.map_width - half + 12))
+                self.character.y = max(half - 10, min(self.character.y, self.map_height - half))
+
                 moving = True
             else:
                 moving = False
@@ -204,10 +254,23 @@ class Game:
 
             self.character.update(dt)
 
+            # centraliza no player
+            self.camera_x = self.character.x - self.screen.get_width() // 2
+            self.camera_y = self.character.y - self.screen.get_height() // 2
+
+            # trava nas bordas do mapa
+            self.camera_x = max(0, min(self.camera_x, self.map_width - self.screen.get_width()))
+            self.camera_y = max(0, min(self.camera_y, self.map_height - self.screen.get_height()))
+
             # desenhar
             self.screen.fill((0, 0, 0))
             self.draw_maps()
-            self.character.draw(self.screen, (self.character.x, self.character.y))
+
+            # mecanica da camera
+            screen_x = self.character.x - self.camera_x - 32
+            screen_y = self.character.y - self.camera_y - 32
+
+            self.character.draw(self.screen, (screen_x, screen_y))
 
             pygame.display.flip()
 
