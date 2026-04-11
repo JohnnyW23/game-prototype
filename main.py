@@ -9,7 +9,7 @@ class Game:
 
         pygame.init()
 
-        self.screen = pygame.display.set_mode((800, 600))
+        self.screen = pygame.display.set_mode((800, 800))
         self.clock = pygame.time.Clock()
 
         self.TILE_SIZE = 32
@@ -152,7 +152,7 @@ class Game:
                 y = row_index * self.TILE_SIZE - self.camera_y
 
                 # só desenha o que aparece na tela (performance)
-                if -32 < x < 800 and -32 < y < 600:
+                if -32 < x < 800 and -32 < y < 800:
                     self.screen.blit(tile, (x, y))
     
 
