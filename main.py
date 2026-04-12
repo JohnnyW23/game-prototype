@@ -9,13 +9,43 @@ class Game:
 
         pygame.init()
 
-        self.screen = pygame.display.set_mode((800, 800))
+        self.screen = pygame.display.set_mode((800, 600))
         self.clock = pygame.time.Clock()
 
         self.TILE_SIZE = 32
 
-        self.map_layers = maps["corner_5"]["model_1"]
+        self.maps = {
+            "chunk1": maps["chunk_1"]["model_1"],
+            "chunk2": maps["chunk_2"]["model_1"],
+            "chunk3": maps["chunk_3"]["model_1"],
+            "chunk4": maps["chunk_4"]["model_1"],
+            "chunk5": maps["chunk_5"]["model_1"],
+            "chunk6": maps["chunk_6"]["model_1"]
+        }
 
+        def concat_horizontal(chunks):
+            result = {}
+            for chunk in chunks:
+                for k, v in self.maps[chunk].items():
+                    if k not in result:
+                        result[k] = [[] for _ in range(len(v))]
+                    for i, row in enumerate(v):
+                        result[k][i].extend(row)
+            return result
+
+        # junta horizontalmente 1-2-3 e 4-5-6
+        top = concat_horizontal(["chunk1", "chunk2", "chunk3"])
+        bottom = concat_horizontal(["chunk4", "chunk5", "chunk6"])
+
+        # agora une verticalmente top + bottom
+        self.map_layers = {}
+
+        for part in [top, bottom]:
+            for k, v in part.items():
+                if k not in self.map_layers:
+                    self.map_layers[k] = []
+                self.map_layers[k].extend(v)
+            
         self.generate_grass_from_dirt()
 
         self.randomizar_tiles(self.map_layers)
@@ -25,8 +55,8 @@ class Game:
             "dirt": TileSet("map_assets/tiles/dirt.png", self.TILE_SIZE)
         }
 
-        self.map_width = len(self.map_layers["grass"][0]) * self.TILE_SIZE
-        self.map_height = len(self.map_layers["grass"]) * self.TILE_SIZE
+        self.map_width = 75 * self.TILE_SIZE
+        self.map_height = 50 * self.TILE_SIZE
 
         self.camera_x = 0
         self.camera_y = 0
@@ -152,7 +182,7 @@ class Game:
                 y = row_index * self.TILE_SIZE - self.camera_y
 
                 # só desenha o que aparece na tela (performance)
-                if -32 < x < 800 and -32 < y < 800:
+                if -32 < x < 800 and -32 < y < 600:
                     self.screen.blit(tile, (x, y))
     
 
