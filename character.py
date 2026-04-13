@@ -15,7 +15,7 @@ class Character:
         self.walking = True
 
 
-        self.x, self.y = 75 * 16, 25 * 16
+        self.x, self.y = 75 * 16, 75 * 16
         self.speed = 100  # pixels por segundo
 
     def get_num_columns(self, sprite):

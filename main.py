@@ -20,7 +20,10 @@ class Game:
             "chunk3": maps["chunk_3"]["model_1"],
             "chunk4": maps["chunk_4"]["model_1"],
             "chunk5": maps["chunk_5"]["model_1"],
-            "chunk6": maps["chunk_6"]["model_1"]
+            "chunk6": maps["chunk_6"]["model_1"],
+            "chunk7": maps["chunk_7"]["model_1"],
+            "chunk8": maps["chunk_8"]["model_1"],
+            "chunk9": maps["chunk_9"]["model_1"],
         }
 
         def concat_horizontal(chunks):
@@ -35,12 +38,13 @@ class Game:
 
         # junta horizontalmente 1-2-3 e 4-5-6
         top = concat_horizontal(["chunk1", "chunk2", "chunk3"])
-        bottom = concat_horizontal(["chunk4", "chunk5", "chunk6"])
+        middle = concat_horizontal(["chunk4", "chunk5", "chunk6"])
+        bottom = concat_horizontal(["chunk7", "chunk8", "chunk9"])
 
         # agora une verticalmente top + bottom
         self.map_layers = {}
 
-        for part in [top, bottom]:
+        for part in [top, middle, bottom]:
             for k, v in part.items():
                 if k not in self.map_layers:
                     self.map_layers[k] = []
@@ -52,11 +56,12 @@ class Game:
 
         self.tilesets = {
             "grass": TileSet("map_assets/tiles/grass.png", self.TILE_SIZE),
-            "dirt": TileSet("map_assets/tiles/dirt.png", self.TILE_SIZE)
+            "dirt": TileSet("map_assets/tiles/dirt.png", self.TILE_SIZE),
+            "water": TileSet("map_assets/tiles/water.png", self.TILE_SIZE)
         }
 
         self.map_width = 75 * self.TILE_SIZE
-        self.map_height = 50 * self.TILE_SIZE
+        self.map_height = 75 * self.TILE_SIZE
 
         self.camera_x = 0
         self.camera_y = 0
@@ -81,13 +86,17 @@ class Game:
         if y < 0 or y >= len(grid) or x < 0 or x >= len(grid[0]):
             return 10
         return grid[y][x]
-    
+
+
     def generate_grass_from_dirt(self):
+        from random import random, choice
+
         dirt = self.map_layers["dirt"]
         height = len(dirt)
         width = len(dirt[0])
 
         grass = [[-1 for _ in range(width)] for _ in range(height)]
+        water = [[-1 for _ in range(width)] for _ in range(height)]
 
         for y in range(height):
             for x in range(width):
@@ -104,6 +113,11 @@ class Game:
 
                 if dirt[y][x] != 10:
                     grass[y][x] = 10
+                    if top == -1 and bottom == -1 and left == -1 and right == -1 and tl == -1 and tr == -1 and bl == -1 and br == -1:
+                        if random() < 0.01:
+                            water[y][x] = choice([0, 3])
+                        else:
+                            water[y][x] = -1
                     continue
 
                 tile = -1
@@ -147,12 +161,13 @@ class Game:
                 elif bottom == 10 and right == 10 and br == -1:
                     tile = 6  # canto interno inf direito
 
+
                 grass[y][x] = tile
 
         self.map_layers["grass"] = grass
+        self.map_layers["water"] = water
     
 
-    
     def randomizar_tiles(self, map_layers, chance=0.3):
         import random
 
@@ -190,18 +205,6 @@ class Game:
         for tile_type in self.map_layers.keys():
             self.draw_map(tile_type)
     
-
-    def map_row(self, mode, length, value):
-        import random
-
-        if mode == "random":
-            return [random.randint(*value) for _ in range(length)]
-        
-        elif mode == "fixed":
-            return [value] * length
-        
-        elif mode == "mixed":
-            return [random.choice(value) for _ in range(length)]
 
     def run(self):
         while self.running:
