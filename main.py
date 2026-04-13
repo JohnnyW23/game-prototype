@@ -51,13 +51,15 @@ class Game:
                 self.map_layers[k].extend(v)
             
         self.generate_grass_from_dirt()
-
         self.randomizar_tiles(self.map_layers)
+        self.generate_buildings()
+        self.generate_collision_layer()
 
         self.tilesets = {
-            "grass": TileSet("map_assets/tiles/grass.png", self.TILE_SIZE),
             "dirt": TileSet("map_assets/tiles/dirt.png", self.TILE_SIZE),
-            "water": TileSet("map_assets/tiles/water.png", self.TILE_SIZE)
+            "grass": TileSet("map_assets/tiles/grass.png", self.TILE_SIZE),
+            "house_outside": TileSet("map_assets/tiles/house.png", self.TILE_SIZE),
+            "house_ornaments": TileSet("map_assets/tiles/house.png", self.TILE_SIZE)
         }
 
         self.map_width = 75 * self.TILE_SIZE
@@ -89,14 +91,12 @@ class Game:
 
 
     def generate_grass_from_dirt(self):
-        from random import random, choice
 
         dirt = self.map_layers["dirt"]
         height = len(dirt)
         width = len(dirt[0])
 
         grass = [[-1 for _ in range(width)] for _ in range(height)]
-        water = [[-1 for _ in range(width)] for _ in range(height)]
 
         for y in range(height):
             for x in range(width):
@@ -113,11 +113,6 @@ class Game:
 
                 if dirt[y][x] != 10:
                     grass[y][x] = 10
-                    if top == -1 and bottom == -1 and left == -1 and right == -1 and tl == -1 and tr == -1 and bl == -1 and br == -1:
-                        if random() < 0.01:
-                            water[y][x] = choice([0, 3])
-                        else:
-                            water[y][x] = -1
                     continue
 
                 tile = -1
@@ -165,10 +160,83 @@ class Game:
                 grass[y][x] = tile
 
         self.map_layers["grass"] = grass
-        self.map_layers["water"] = water
     
 
-    def randomizar_tiles(self, map_layers, chance=0.3):
+    def can_place_building(self, x, y, w, h, margin=1):
+        dirt = self.map_layers["dirt"]
+        house = self.map_layers.get("house_outside")
+
+        max_y = len(dirt)
+        max_x = len(dirt[0])
+
+        for yy in range(y - margin, y + h + margin):
+            for xx in range(x - margin, x + w + margin):
+                if yy < 0 or yy >= max_y or xx < 0 or xx >= max_x:
+                    return False
+
+                # terreno precisa ser vazio
+                if dirt[yy][xx] != -1:
+                    return False
+
+                # NÃO pode ter outra casa ali
+                if house and house[yy][xx] != -1:
+                    return False
+
+        return True
+
+
+    
+    def generate_buildings(self, chance=0.20):
+        import random
+        from map_models.buildings import buildings
+
+        model = buildings["house"]["model1"]
+
+        base_tiles = model["house_outside"]
+        ornament_tiles = model["house_ornaments"]
+
+        h = len(base_tiles)
+        w = len(base_tiles[0])
+
+        dirt = self.map_layers["dirt"]
+        map_h = len(dirt)
+        map_w = len(dirt[0])
+
+        # cria layers se não existirem
+        if "house_outside" not in self.map_layers:
+            self.map_layers["house_outside"] = [[-1 for _ in range(map_w)] for _ in range(map_h)]
+        if "house_ornaments" not in self.map_layers:
+            self.map_layers["house_ornaments"] = [[-1 for _ in range(map_w)] for _ in range(map_h)]
+
+        house_layer = self.map_layers["house_outside"]
+        ornament_layer = self.map_layers["house_ornaments"]
+
+        for y in range(map_h - h):
+            for x in range(map_w - w):
+
+                if random.random() > chance:
+                    continue
+
+                if not self.can_place_building(x, y, w, h, margin=1):
+                    continue
+
+                # aplica estrutura
+                for yy in range(h):
+                    for xx in range(w):
+                        tile = base_tiles[yy][xx]
+                        if tile != -1:
+                            house_layer[y + yy][x + xx] = tile
+
+                # aplica ornamentos
+                for yy in range(h):
+                    for xx in range(w):
+                        tile = ornament_tiles[yy][xx]
+                        if tile != -1:
+                            ornament_layer[y + yy][x + xx] = tile
+
+    
+
+    def randomizar_tiles(self, map_layers, chance=0.15):
         import random
 
         for layer_name, layer in map_layers.items():
@@ -179,10 +247,76 @@ class Game:
                             layer[y][x] = random.randint(15, 17)
                         else:
                             layer[y][x] = random.randint(16, 17)
+    
+
+    def generate_collision_layer(self):
+        height = len(self.map_layers["dirt"])
+        width = len(self.map_layers["dirt"][0])
+
+        collision = [[False for _ in range(width)] for _ in range(height)]
+
+        # casas bloqueiam
+        if "house_outside" in self.map_layers:
+            for y, row in enumerate(self.map_layers["house_outside"]):
+                for x, tile in enumerate(row):
+                    if tile != -1:
+                        collision[y][x] = True
+
+        self.map_layers["collision"] = collision
+
+
+    def is_colliding(self, px, py):
+        FOOT_Y_OFFSET = 28        # onde fica o pé no sprite
+        FOOT_HALF_WIDTH = 10     # metade da largura REAL do pé
+
+        foot_y = py + FOOT_Y_OFFSET
+
+        # três pontos: esquerda, centro, direita
+        points = [
+            (px - FOOT_HALF_WIDTH, foot_y),
+            (px, foot_y),
+            (px + FOOT_HALF_WIDTH, foot_y),
+        ]
+
+        for point_x, point_y in points:
+            tx = int(point_x // self.TILE_SIZE)
+            ty = int(point_y // self.TILE_SIZE)
+
+            if (
+                ty < 0 or ty >= len(self.map_layers["collision"]) or
+                tx < 0 or tx >= len(self.map_layers["collision"][0])
+            ):
+                return True
+
+            if self.map_layers["collision"][ty][tx]:
+                return True
+
+        return False
+
+
+    def draw_house_ornaments_with_depth(self):
+        FOOT_Y_OFFSET = 28
+        player_foot_y = self.character.y + FOOT_Y_OFFSET
+
+        tileset = self.tilesets["house_ornaments"]
+
+        for row, row_tiles in enumerate(self.map_layers["house_ornaments"]):
+            tile_world_y = row * self.TILE_SIZE
+
+            for col, tile_index in enumerate(row_tiles):
+                if tile_index == -1:
+                    continue
+
+                x = col * self.TILE_SIZE - self.camera_x
+                y = tile_world_y - self.camera_y
+
+                # se o pé do personagem está ACIMA do ornamento → ornamento na frente
+                if player_foot_y < tile_world_y:
+                    self.screen.blit(tileset.tiles[tile_index], (x, y))
+
 
 
     def draw_map(self, tile_type):
-
         tileset = self.tilesets[tile_type]
 
         for row_index, row in enumerate(self.map_layers[tile_type]):
@@ -196,16 +330,17 @@ class Game:
                 x = col_index * self.TILE_SIZE - self.camera_x
                 y = row_index * self.TILE_SIZE - self.camera_y
 
-                # só desenha o que aparece na tela (performance)
-                if -32 < x < 800 and -32 < y < 600:
+                # desenha só o que está na tela
+                if -32 < x < self.screen.get_width() and -32 < y < self.screen.get_height():
                     self.screen.blit(tile, (x, y))
-    
+
 
     def draw_maps(self):
-        for tile_type in self.map_layers.keys():
-            self.draw_map(tile_type)
-    
+        for layer in ["dirt", "grass", "house_outside"]:
+            if layer in self.map_layers:
+                self.draw_map(layer)
 
+    
     def run(self):
         while self.running:
             dt = self.clock.tick(60)
@@ -235,7 +370,6 @@ class Game:
             dx = 0
             dy = 0
 
-            speed = 75
             if self.character.is_running:
                 speed = 200
 
@@ -260,8 +394,17 @@ class Game:
                 dx /= length
                 dy /= length
 
-                self.character.x += dx * speed * dt / 1000
-                self.character.y += dy * speed * dt / 1000
+                new_x = self.character.x + dx * speed * dt / 1000
+                new_y = self.character.y + dy * speed * dt / 1000
+
+                # testa X
+                if not self.is_colliding(new_x, self.character.y):
+                    self.character.x = new_x
+
+                # testa Y
+                if not self.is_colliding(self.character.x, new_y):
+                    self.character.y = new_y
+
 
                 half = 32
 
@@ -297,13 +440,14 @@ class Game:
 
             # desenhar
             self.screen.fill((0, 0, 0))
-            self.draw_maps()
 
             # mecanica da camera
             screen_x = self.character.x - self.camera_x - 32
             screen_y = self.character.y - self.camera_y - 32
 
+            self.draw_maps()
             self.character.draw(self.screen, (screen_x, screen_y))
+            self.draw_house_ornaments_with_depth()
 
             pygame.display.flip()
 
