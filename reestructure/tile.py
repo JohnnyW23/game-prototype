@@ -2,9 +2,19 @@ import pygame
 from settings import *
 
 class Tile(pygame.sprite.Sprite):
-    def __init__(self, pos, groups):
+    def __init__(
+        self,
+        pos,
+        groups,
+        sprite_type,
+        surface=pygame.Surface((TILESIZE, TILESIZE)),
+        z_offset=0
+    ):
         super().__init__(groups)
-        spritesheet = pygame.image.load('map_assets/tiles/rock.png').convert_alpha()
-        self.image = spritesheet.subsurface((0, 0, 32, 32))
+        self.sprite_type = sprite_type
+        self.image = surface
         self.rect = self.image.get_rect(topleft=pos)
+
         self.hitbox = self.rect.inflate(0, -10)
+
+        self.z_offset = z_offset
