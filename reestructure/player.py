@@ -2,7 +2,7 @@ import pygame
 from settings import *
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, obstacle_sprites):
+    def __init__(self, pos, groups, obstacle_sprites, z_offset=0):
         super().__init__(groups)
         spritesheet = pygame.image.load('map_assets/sprites/people/soldier.png').convert_alpha()
         self.image = spritesheet.subsurface((0, 136, 64, 56))
@@ -10,9 +10,11 @@ class Player(pygame.sprite.Sprite):
         self.hitbox = self.rect.inflate(-26, -23)
 
         self.direction = pygame.math.Vector2()
-        self.speed = 2
+        self.speed = 10
 
         self.obstacle_sprites = obstacle_sprites
+
+        self.z_offset = z_offset
     
 
     def input(self):
