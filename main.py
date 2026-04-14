@@ -84,6 +84,7 @@ class Game:
 
         self.running = True
 
+
     def get_tile(self, grid, x, y):
         if y < 0 or y >= len(grid) or x < 0 or x >= len(grid[0]):
             return 10
@@ -91,7 +92,6 @@ class Game:
 
 
     def generate_grass_from_dirt(self):
-
         dirt = self.map_layers["dirt"]
         height = len(dirt)
         width = len(dirt[0])
