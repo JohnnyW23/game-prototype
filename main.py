@@ -188,7 +188,7 @@ class Game:
     
     def generate_buildings(self, chance=0.20):
         import random
-        from map_models.buildings import buildings
+        from reestructure.buildings import buildings
 
         model = buildings["house"]["model1"]
 
