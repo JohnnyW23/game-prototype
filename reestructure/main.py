@@ -15,10 +15,14 @@ class Game:
     
     def run(self):
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+
+            events = pygame.event.get()
+            for e in events:
+                if e.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+
+                self.level.player.handle_running(e)
             
 
             self.screen.fill('black')
