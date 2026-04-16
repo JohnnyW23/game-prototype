@@ -6,7 +6,8 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, pos, groups, obstacle_sprites, z_offset=0):
         super().__init__(groups)
 
-        self.assets = self.create_player_assets()
+        self.all_sprites = self.get_all_sprites()
+
 
         self.animation_timer = 0
         self.animation_speed = 200
@@ -19,6 +20,10 @@ class Player(pygame.sprite.Sprite):
         self.attack_cooldown = 400
         self.combat_mode_cooldown = 2500
         self.attack_time = 0
+        self.last_attack = None
+        self.last_attack_time = 0
+
+        self.weapon = "silver_sword"
 
         self.double_tap_delay = 500
 
@@ -33,7 +38,7 @@ class Player(pygame.sprite.Sprite):
 
         self.z_offset = z_offset
 
-        self.mode = "Idle"
+        self.mode = f"idle_{self.weapon}"
         self.is_running = False
         self.run_direction = None
         self.direction_row = 3 
@@ -46,57 +51,34 @@ class Player(pygame.sprite.Sprite):
             32,
             24
         )
+
+
+    def get_all_sprites(self):
+        import os
+
+        path = "assets/characters/sprites"
+
+        sprites = os.listdir(path)
+
+        sprite_dict = {}
+
+        for sprite in sprites:
+            sprite_dict[sprite[:-4]] = pygame.image.load(f'{path}/{sprite}')
+        
+        print(sprite_dict)
+        
+        return sprite_dict
     
 
-    def create_player_assets(self):
-
-        skin_color = "Ivory"
-        hair_color = "Black"
-        eye_color = "Green"
-        torso_color = "Black"
-        leg_color = "Red"
-        foot_color = "Black"
-
-        hair_style = "Short 03 - Curly"
-        facial_hair_type = "Facial Hair 06 - Trimmed Beard"
-        torso_type = "Shirt 02 - V-neck Longsleeve Shirt"
-        leg_type = "Pants 04 - Cuffed Pants"
-        foot_type = "Shoes 01 - Shoes"
-        
-        
-        main_paths = {
-            "body": f'assets/characters/body/{skin_color}/',
-            "torso": f'assets/characters/torsos/{torso_type}/{torso_color}/',
-            "legs": f'assets/characters/legs/{leg_type}/{leg_color}/',
-            "feet": f'assets/characters/feet/{foot_type}/{foot_color}/',
-            "head": f'assets/characters/heads/{skin_color}/',
-            "eyes": f'assets/characters/eyes/{eye_color}/',
-            "eyebrows": f'assets/characters/eyebrows/Eyebrows 01 - Thin Eyebrows/{hair_color}/',
-            "hair": f'assets/characters/hairs/{hair_style}/{hair_color}/',
-            # "facial_hair": f'assets/characters/facial_hair/{facial_hair_type}/{hair_color}/'
-            "sword": f'assets/characters/props/Steel Sword/'
-        }
-
-        states = ["Combat 1h - Backslash", "Combat 1h - Halfslash", "Combat 1h - Idle", "Combat 1h - Slash", "Emotes", "Idle", "Jump", "Run", "Sitting", "Walk"]
-
-        assets = {}
-
-        for k, v in main_paths.items():
-            assets[k] = {}
-            for state in states:
-                if k == "sword" and "Combat" not in state:
-                    assets[k][state] = None
-                    continue
-                assets[k][state] = pygame.image.load(f'{v}{state}.png').convert_alpha()
-        
-        return assets
-
-
-    def get_num_columns(self, sprite):
-        return sprite.get_width() // (sprite.get_height() // 4)
+    def get_num_columns(self):
+        mode = self.mode
+        if "_" in mode: key = mode[:mode.find("_")]
+        else: key = mode
+        return PLAYER_FRAMES[key]
     
 
     def get_frame(self, frame_index):
+
         frame_height = 64
         frame_width = 64
 
@@ -116,15 +98,14 @@ class Player(pygame.sprite.Sprite):
 
         composed = pygame.Surface((128, 128), pygame.SRCALPHA)
 
-        for asset in self.assets.keys():
-            image = self.assets[asset][self.mode]
-            if image is None: continue
-            if asset == "sword":
-                frame = image.subsurface(big_rect)
-                composed.blit(frame, (0, 0))
-            else:
-                frame = image.subsurface(rect)
-                composed.blit(frame, (32, 32))
+        image = self.all_sprites[self.mode]
+
+        if "slash" in self.mode:
+            frame = image.subsurface(big_rect)
+            composed.blit(frame, (0, 0))
+        else:
+            frame = image.subsurface(rect)
+            composed.blit(frame, (32, 32))
 
         return composed
 
@@ -157,31 +138,46 @@ class Player(pygame.sprite.Sprite):
 
         if self.direction.length_squared() > 0:
             if self.is_running:
-                self.set_mode("Run")
+                self.set_mode(f"run")
                 self.speed = 4
             else:
-                self.set_mode("Walk")
+                self.set_mode(f"walk_{self.weapon}")
                 self.speed = 2
         else:
-            if self.mode != "Combat 1h - Idle":
-                self.set_mode("Idle")
+            if self.mode != f"combat_{self.weapon}":
+                self.set_mode(f"idle_{self.weapon}")
                 self.is_running = False
         
         
         if keys[pygame.K_j] and not self.attacking:
+            previous_attack = self.last_attack
+            self.last_attack = "slash"
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
-            self.set_mode("Combat 1h - Slash")
+            self.attack_cooldown = 400
+            if self.attack_time - self.last_attack_time <= 100:
+                if previous_attack == "slash":
+                    self.set_mode(f"slashalt_{self.weapon}")
+                    self.last_attack = "slashalt"
+                else:
+                    self.set_mode(f"slash_{self.weapon}")
+            else:
+                self.set_mode(f"slash_{self.weapon}")
+
         
         if keys[pygame.K_k] and not self.attacking:
+            self.last_attack = "halfslash"
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
-            self.set_mode("Combat 1h - Halfslash")
+            self.attack_cooldown = 600
+            self.set_mode(f"halfslash_{self.weapon}")
 
         if keys[pygame.K_l] and not self.attacking:
+            self.last_attack = "backslash"
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
-            self.set_mode("Combat 1h - Backslash")
+            self.attack_cooldown = 900
+            self.set_mode(f"backslash_{self.weapon}")
             
     
 
@@ -198,20 +194,22 @@ class Player(pygame.sprite.Sprite):
     
 
     def set_mode(self, mode):
-        if mode == "Combat 1h - Idle":
-            self.animation_speed = 300
-        elif mode == "Idle":
+        if mode == f"idle_{self.weapon}":
             self.animation_speed = 200
-        elif mode == "Run":
+        elif mode == "run":
             self.animation_speed = 70
-        elif mode == "Walk":
+        elif mode == f"walk_{self.weapon}":
             self.animation_speed = 120
-        elif mode == "Combat 1h - Slash":
-            self.animation_speed = 40
-        elif mode == "Combat 1h - Halfslash":
-            self.animation_speed = 40
-        elif mode == "Combat 1h - Backslash":
-            self.animation_speed = 40
+        elif mode == f"combat_{self.weapon}":
+            self.animation_speed = 300
+        elif mode == f"slash_{self.weapon}":
+            self.animation_speed = 78
+        elif mode == f"slashalt_{self.weapon}":
+            self.animation_speed = 78
+        elif mode == f"halfslash_{self.weapon}":
+            self.animation_speed = 98
+        elif mode == f"backslash_{self.weapon}":
+            self.animation_speed = 70
         
         if mode != self.mode:
             self.current_frame = 0
@@ -245,11 +243,12 @@ class Player(pygame.sprite.Sprite):
         if self.attacking:
             if current_time - self.attack_time >= self.attack_cooldown:
                 self.attacking = False
-                self.set_mode("Combat 1h - Idle")
+                self.last_attack_time = current_time
+                self.set_mode(f"combat_{self.weapon}")
         
-        if self.mode == "Combat 1h - Idle":
+        if self.mode == f"combat_{self.weapon}":
             if current_time - self.attack_time >= self.combat_mode_cooldown:
-                self.set_mode("Idle")
+                self.set_mode(f"idle_{self.weapon}")
     
 
     def handle_running(self, event):
@@ -273,9 +272,7 @@ class Player(pygame.sprite.Sprite):
             self.last_animation_time = current_time
             self.current_frame += 1
 
-            total_frames = self.get_num_columns(
-                self.assets["head"][self.mode]
-            )
+            total_frames = self.get_num_columns()
 
             if "Combat" in self.mode:
                 if self.current_frame >= total_frames:
@@ -299,11 +296,9 @@ class Player(pygame.sprite.Sprite):
         pygame.draw.rect(display_surface, (0, 0, 255), offset_rect, 1)
 
 
-
     def update(self):
         self.cooldowns()
         self.input()
         self.move(self.speed)
         self.animate()
-
         
