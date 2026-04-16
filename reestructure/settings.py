@@ -3,6 +3,22 @@ HEIGHT   = 600
 FPS      = 60
 TILESIZE = 32
 
+PLAYER_FRAMES = {
+    "backslash": 12,
+    "climb": 6,
+    "combat": 2,
+    "emote": 3,
+    "halfslash": 6,
+    "hurt": 6,
+    "idle": 2,
+    "jump": 5,
+    "run": 8,
+    "sit": 1,
+    "slash": 5,
+    "slashalt": 6,
+    "walk": 9
+}
+
 
 """
 PASSAGENS:
