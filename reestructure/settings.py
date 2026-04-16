@@ -15,8 +15,15 @@ PLAYER_FRAMES = {
     "run": 8,
     "sit": 1,
     "slash": 5,
-    "slashalt": 6,
     "walk": 9
+}
+
+WEAPON_DATA = {
+    "sword": {
+        "silver": {
+            "base_damage": 10
+        }
+    }
 }
 
 

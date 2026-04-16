@@ -3,14 +3,13 @@ from settings import *
 from debug import debug
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, obstacle_sprites, z_offset=0):
+    def __init__(self, pos, groups, obstacle_sprites, create_attack, z_offset=0):
         super().__init__(groups)
 
         self.all_sprites = self.get_all_sprites()
 
-
         self.animation_timer = 0
-        self.animation_speed = 200
+        self.animation_speed = 600
         self.last_animation_time = pygame.time.get_ticks()
         self.current_frame = 0
 
@@ -20,8 +19,7 @@ class Player(pygame.sprite.Sprite):
         self.attack_cooldown = 400
         self.combat_mode_cooldown = 2500
         self.attack_time = 0
-        self.last_attack = None
-        self.last_attack_time = 0
+        self.create_attack = create_attack
 
         self.weapon = "silver_sword"
 
@@ -57,16 +55,11 @@ class Player(pygame.sprite.Sprite):
         import os
 
         path = "assets/characters/sprites"
-
         sprites = os.listdir(path)
-
         sprite_dict = {}
-
         for sprite in sprites:
             sprite_dict[sprite[:-4]] = pygame.image.load(f'{path}/{sprite}')
-        
-        print(sprite_dict)
-        
+
         return sprite_dict
     
 
@@ -150,34 +143,25 @@ class Player(pygame.sprite.Sprite):
         
         
         if keys[pygame.K_j] and not self.attacking:
-            previous_attack = self.last_attack
-            self.last_attack = "slash"
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
             self.attack_cooldown = 400
-            if self.attack_time - self.last_attack_time <= 100:
-                if previous_attack == "slash":
-                    self.set_mode(f"slashalt_{self.weapon}")
-                    self.last_attack = "slashalt"
-                else:
-                    self.set_mode(f"slash_{self.weapon}")
-            else:
-                self.set_mode(f"slash_{self.weapon}")
-
+            self.set_mode(f"slash_{self.weapon}")
+            self.create_attack()
         
         if keys[pygame.K_k] and not self.attacking:
-            self.last_attack = "halfslash"
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
-            self.attack_cooldown = 600
+            self.attack_cooldown = 650
             self.set_mode(f"halfslash_{self.weapon}")
+            self.create_attack()
 
         if keys[pygame.K_l] and not self.attacking:
-            self.last_attack = "backslash"
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
             self.attack_cooldown = 900
             self.set_mode(f"backslash_{self.weapon}")
+            self.create_attack()
             
     
 
@@ -195,7 +179,7 @@ class Player(pygame.sprite.Sprite):
 
     def set_mode(self, mode):
         if mode == f"idle_{self.weapon}":
-            self.animation_speed = 200
+            self.animation_speed = 600
         elif mode == "run":
             self.animation_speed = 70
         elif mode == f"walk_{self.weapon}":
@@ -204,10 +188,8 @@ class Player(pygame.sprite.Sprite):
             self.animation_speed = 300
         elif mode == f"slash_{self.weapon}":
             self.animation_speed = 78
-        elif mode == f"slashalt_{self.weapon}":
-            self.animation_speed = 78
         elif mode == f"halfslash_{self.weapon}":
-            self.animation_speed = 98
+            self.animation_speed = 80
         elif mode == f"backslash_{self.weapon}":
             self.animation_speed = 70
         
@@ -274,12 +256,12 @@ class Player(pygame.sprite.Sprite):
 
             total_frames = self.get_num_columns()
 
-            if "Combat" in self.mode:
+            if "slash" in self.mode:
                 if self.current_frame >= total_frames:
                     self.current_frame = 0
                     self.attacking = False
                     # quando terminar o ataque, entra em Combat Idle
-                    self.set_mode("Combat 1h - Idle")
+                    self.set_mode(f"combat_{self.weapon}")
             else:
                 self.current_frame %= total_frames
 

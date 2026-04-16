@@ -2,6 +2,7 @@ import pygame
 from settings import *
 from tile import Tile
 from player import Player
+from weapon import Weapon
 
 
 class Level:
@@ -251,9 +252,6 @@ class Level:
                             if tile != -1:
                                 ornament_layer[y + yy][x + xx] = tile
 
-
-
-
     
     def create_map(self):
         boundary = []
@@ -299,7 +297,17 @@ class Level:
                         if style == "house_ornaments":
                             Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "house", self.tilesets["house"][col])
                 
-        self.player = Player((75 * (TILESIZE / 2) - 32, 75 * (TILESIZE / 2) - 32), [self.visible_sprites], self.obstacles_sprites)
+        self.player = Player(
+            (
+                75 * (TILESIZE / 2) - 32,
+                75 * (TILESIZE / 2) - 32
+            ),
+            [
+                self.visible_sprites
+            ],
+            self.obstacles_sprites,
+            self.create_attack
+        )
 
 
     def slice_tiles(self, image_path):
@@ -330,6 +338,10 @@ class Level:
             terrain_map.append(list(row))
         return terrain_map
         
+
+    def create_attack(self):
+        Weapon(self.player, [self.visible_sprites])
+
 
     def run(self):
         self.visible_sprites.custom_draw(self.player)
