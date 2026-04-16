@@ -1,6 +1,7 @@
 import pygame, sys
 from settings import *
 from level import Level
+from debug import debug
 
 
 class Game:
@@ -27,6 +28,7 @@ class Game:
 
             self.screen.fill('black')
             self.level.run()
+            debug(f"FPS: {self.clock.get_fps():.2f}")
             pygame.display.update()
             self.clock.tick(FPS)
 

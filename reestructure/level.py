@@ -173,20 +173,10 @@ class Level:
         from buildings import buildings
 
         for building in buildings.keys():
-            
-            model_name = random.choice(list(buildings[building].keys()))
-            model = buildings[building][model_name]
 
             overlayed = f'{building}_overlayed'
             outside = f'{building}_outside'
             ornaments = f'{building}_ornaments'
-
-            top_tiles = model[overlayed]
-            base_tiles = model[outside]
-            ornament_tiles = model[ornaments]
-
-            h = len(base_tiles)
-            w = len(base_tiles[0])
 
             dirt = self.map_layers["dirt"]
             map_h = len(dirt)
@@ -204,22 +194,50 @@ class Level:
             base_layer = self.map_layers[outside]
             ornament_layer = self.map_layers[ornaments]
 
-            for y in range(map_h - h):
-                for x in range(map_w - w):
+            # percorre o mapa
+            for y in range(map_h):
+                for x in range(map_w):
 
                     if random.random() > chance:
                         continue
 
-                    if not self.can_place_building(x, y, w, h, margin=1):
+                    # sorteia modelo a cada tentativa
+                    model_name = random.choice(list(buildings[building].keys()))
+                    model = buildings[building][model_name]
+
+                    base_tiles = model[outside]
+                    top_tiles = model[overlayed]
+                    ornament_tiles = model[ornaments]
+
+                    h = len(base_tiles)
+                    w = len(base_tiles[0])
+
+                    # checa se cabe no mapa
+                    if y + h > map_h or x + w > map_w:
                         continue
 
-                    # aplica estrutura
+                    # valida posição usando apenas as células do outside que não são -1
+                    valid = True
                     for yy in range(h):
                         for xx in range(w):
+                            if base_tiles[yy][xx] != -1:
+                                if not self.can_place_building(x + xx, y + yy, 1, 1, margin=1):
+                                    valid = False
+                                    break
+                        if not valid:
+                            break
+
+                    if not valid:
+                        continue
+
+                    # aplica overlay
+                    for yy in range(len(top_tiles)):
+                        for xx in range(len(top_tiles[0])):
                             tile = top_tiles[yy][xx]
                             if tile != -1:
                                 top_layer[y + yy][x + xx] = tile
 
+                    # aplica base
                     for yy in range(h):
                         for xx in range(w):
                             tile = base_tiles[yy][xx]
@@ -227,11 +245,14 @@ class Level:
                                 base_layer[y + yy][x + xx] = tile
 
                     # aplica ornamentos
-                    for yy in range(h):
-                        for xx in range(w):
+                    for yy in range(len(ornament_tiles)):
+                        for xx in range(len(ornament_tiles[0])):
                             tile = ornament_tiles[yy][xx]
                             if tile != -1:
                                 ornament_layer[y + yy][x + xx] = tile
+
+
+
 
     
     def create_map(self):
@@ -278,24 +299,24 @@ class Level:
                         if style == "house_ornaments":
                             Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "house", self.tilesets["house"][col])
                 
-        self.player = Player((75 * 16 - 32, 75 * 16 - 32), [self.visible_sprites], self.obstacles_sprites)
+        self.player = Player((75 * (TILESIZE / 2) - 32, 75 * (TILESIZE / 2) - 32), [self.visible_sprites], self.obstacles_sprites)
 
 
     def slice_tiles(self, image_path):
         image = pygame.image.load(image_path).convert_alpha()
         image_width, image_height = image.get_size()
-        columns = image_width // TILESIZE
-        rows = image_height // TILESIZE
+        columns = image_width // 32
+        rows = image_height // 32
 
         tilesets = []
 
         for row in range(rows):
             for col in range(columns):
                 rect = pygame.Rect(
-                    col * TILESIZE,
-                    row * TILESIZE,
-                    TILESIZE,
-                    TILESIZE
+                    col * 32,
+                    row * 32,
+                    32,
+                    32
                 )
                 tile = image.subsurface(rect)
                 tilesets.append(tile)
@@ -342,3 +363,9 @@ class YSortCameraGroup(pygame.sprite.Group):
 
             if screen_rect.colliderect(sprite_rect):
                 self.display_surface.blit(sprite.image, offset_pos)
+            
+
+            '''
+            if isinstance(sprite, Player):
+                sprite.hitbox_debug(offset=self.offset)
+            '''

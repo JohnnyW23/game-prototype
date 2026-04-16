@@ -9,7 +9,7 @@ class Player(pygame.sprite.Sprite):
         self.assets = self.create_player_assets()
 
         self.animation_timer = 0
-        self.animation_speed = 150
+        self.animation_speed = 200
         self.last_animation_time = pygame.time.get_ticks()
         self.current_frame = 0
 
@@ -17,7 +17,8 @@ class Player(pygame.sprite.Sprite):
         self.speed = 2
         self.attacking = False
         self.attack_cooldown = 400
-        self.attack_time = None
+        self.combat_mode_cooldown = 2500
+        self.attack_time = 0
 
         self.double_tap_delay = 500
 
@@ -39,7 +40,12 @@ class Player(pygame.sprite.Sprite):
 
         self.image = self.get_frame(self.current_frame)
         self.rect = self.image.get_rect(topleft = pos)
-        self.hitbox = self.rect.inflate(-26, -23)
+        self.hitbox = pygame.Rect(
+            self.rect.x,   # começa alinhado
+            self.rect.y ,   # começa alinhado
+            32,
+            24
+        )
     
 
     def create_player_assets(self):
@@ -68,7 +74,7 @@ class Player(pygame.sprite.Sprite):
             "eyebrows": f'assets/characters/eyebrows/Eyebrows 01 - Thin Eyebrows/{hair_color}/',
             "hair": f'assets/characters/hairs/{hair_style}/{hair_color}/',
             # "facial_hair": f'assets/characters/facial_hair/{facial_hair_type}/{hair_color}/'
-            "sword": f'assets/characters/props/Iron Sword/'
+            "sword": f'assets/characters/props/Steel Sword/'
         }
 
         states = ["Combat 1h - Backslash", "Combat 1h - Halfslash", "Combat 1h - Idle", "Combat 1h - Slash", "Emotes", "Idle", "Jump", "Run", "Sitting", "Walk"]
@@ -108,27 +114,19 @@ class Player(pygame.sprite.Sprite):
             128
         )
 
-        composed = pygame.Surface((frame_width, frame_height), pygame.SRCALPHA)
+        composed = pygame.Surface((128, 128), pygame.SRCALPHA)
 
         for asset in self.assets.keys():
             image = self.assets[asset][self.mode]
             if image is None: continue
             if asset == "sword":
                 frame = image.subsurface(big_rect)
-                frame = pygame.transform.scale(frame, (64, 64))
                 composed.blit(frame, (0, 0))
             else:
                 frame = image.subsurface(rect)
-                composed.blit(frame, (0, 0))
+                composed.blit(frame, (32, 32))
 
         return composed
-
-    
-    def is_last_attack_frame(self):
-        total_frames = self.get_num_columns(
-            self.assets["head"]["Combat 1h - Slash"]
-        )
-        return self.current_frame >= total_frames - 1
 
 
     def input(self):
@@ -160,19 +158,31 @@ class Player(pygame.sprite.Sprite):
         if self.direction.length_squared() > 0:
             if self.is_running:
                 self.set_mode("Run")
-                self.speed = 3
+                self.speed = 4
             else:
                 self.set_mode("Walk")
-                self.speed = 1
+                self.speed = 2
         else:
-            self.set_mode("Idle")
-            self.is_running = False
+            if self.mode != "Combat 1h - Idle":
+                self.set_mode("Idle")
+                self.is_running = False
         
         
         if keys[pygame.K_j] and not self.attacking:
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
             self.set_mode("Combat 1h - Slash")
+        
+        if keys[pygame.K_k] and not self.attacking:
+            self.attacking = True
+            self.attack_time = pygame.time.get_ticks()
+            self.set_mode("Combat 1h - Halfslash")
+
+        if keys[pygame.K_l] and not self.attacking:
+            self.attacking = True
+            self.attack_time = pygame.time.get_ticks()
+            self.set_mode("Combat 1h - Backslash")
+            
     
 
     def move(self, speed):
@@ -183,18 +193,25 @@ class Player(pygame.sprite.Sprite):
         self.collision('horizontal')
         self.hitbox.y += self.direction.y * speed
         self.collision('vertical')
-        self.rect.center = self.hitbox.center
+        self.rect.bottom = self.hitbox.bottom + 32
+        self.rect.right = self.hitbox.right  + 48
     
 
     def set_mode(self, mode):
-        if mode == "Idle":
+        if mode == "Combat 1h - Idle":
             self.animation_speed = 300
+        elif mode == "Idle":
+            self.animation_speed = 200
         elif mode == "Run":
             self.animation_speed = 70
         elif mode == "Walk":
             self.animation_speed = 120
         elif mode == "Combat 1h - Slash":
-            self.animation_speed = 60
+            self.animation_speed = 40
+        elif mode == "Combat 1h - Halfslash":
+            self.animation_speed = 40
+        elif mode == "Combat 1h - Backslash":
+            self.animation_speed = 40
         
         if mode != self.mode:
             self.current_frame = 0
@@ -228,6 +245,10 @@ class Player(pygame.sprite.Sprite):
         if self.attacking:
             if current_time - self.attack_time >= self.attack_cooldown:
                 self.attacking = False
+                self.set_mode("Combat 1h - Idle")
+        
+        if self.mode == "Combat 1h - Idle":
+            if current_time - self.attack_time >= self.combat_mode_cooldown:
                 self.set_mode("Idle")
     
 
@@ -256,16 +277,27 @@ class Player(pygame.sprite.Sprite):
                 self.assets["head"][self.mode]
             )
 
-            # ✅ SE ESTIVER ATACANDO
             if "Combat" in self.mode:
                 if self.current_frame >= total_frames:
                     self.current_frame = 0
                     self.attacking = False
-                    self.set_mode("Idle")
+                    # quando terminar o ataque, entra em Combat Idle
+                    self.set_mode("Combat 1h - Idle")
             else:
                 self.current_frame %= total_frames
 
         self.image = self.get_frame(self.current_frame)
+    
+    def hitbox_debug(self, offset):
+        display_surface = pygame.display.get_surface()
+        offset_hitbox = self.hitbox.copy()
+        offset_hitbox.topleft -= offset
+        pygame.draw.rect(display_surface, (255, 0, 0), offset_hitbox, 1)
+
+        offset_rect = self.rect.copy()
+        offset_rect.topleft -= offset
+        pygame.draw.rect(display_surface, (0, 0, 255), offset_rect, 1)
+
 
 
     def update(self):
@@ -273,3 +305,5 @@ class Player(pygame.sprite.Sprite):
         self.input()
         self.move(self.speed)
         self.animate()
+
+        
