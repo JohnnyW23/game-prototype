@@ -26,6 +26,24 @@ WEAPON_DATA = {
     }
 }
 
+ATTACK_TYPES_DATA = {
+    "slash": {
+        "start": 120,
+        "size": (33, 36),
+        "vector_coordinates": [(0, -52), (44, 12), (0, -44), (44, -12)]
+    },
+    "halfslash": {
+        "start": 140,
+        "size": (33, 36),
+        "vector_coordinates": [(0, -52), (34, 12), (0, -44), (34, -12)]
+    },
+    "backslash": {
+        "start": 150,
+        "size": (33, 36),
+        "vector_coordinates": [(0, -52), (44, 12), (0, -44), (44, -12)]
+    }
+}
+
 
 """
 PASSAGENS:

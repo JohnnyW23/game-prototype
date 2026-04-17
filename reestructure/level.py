@@ -2,7 +2,7 @@ import pygame
 from settings import *
 from tile import Tile
 from player import Player
-from weapon import Weapon
+from hitbox import Hitbox
 
 
 class Level:
@@ -13,10 +13,13 @@ class Level:
         self.visible_sprites = YSortCameraGroup()
         self.obstacles_sprites = pygame.sprite.Group()
 
+        self.current_attack = None
+
         self.tilesets = {
             "dirt": self.slice_tiles("map_assets/tiles/dirt.png"),
             "grass": self.slice_tiles("map_assets/tiles/grass.png"),
-            "house": self.slice_tiles("map_assets/tiles/house.png")
+            "house": self.slice_tiles("map_assets/tiles/house.png"),
+            "tree": self.slice_tiles("map_assets/tiles/tree.png")
         }
 
         self.create_floor_map()
@@ -169,11 +172,12 @@ class Level:
         return True
 
 
-    def generate_buildings(self, chance=0.1):
+    def generate_buildings(self):
         import random
         from buildings import buildings
 
         for building in buildings.keys():
+            print(building)
 
             overlayed = f'{building}_overlayed'
             outside = f'{building}_outside'
@@ -199,11 +203,14 @@ class Level:
             for y in range(map_h):
                 for x in range(map_w):
 
+                    # sorteia modelo a cada tentativa
+                    model_name = random.choice(list(buildings[building].keys()))
+                    model = buildings[building][model_name]
+                    chance = model["chance"]
+
                     if random.random() > chance:
                         continue
 
-                    # sorteia modelo a cada tentativa
-                    model_name = random.choice(list(buildings[building].keys()))
                     model = buildings[building][model_name]
 
                     base_tiles = model[outside]
@@ -231,26 +238,42 @@ class Level:
                     if not valid:
                         continue
 
-                    # aplica overlay
-                    for yy in range(len(top_tiles)):
-                        for xx in range(len(top_tiles[0])):
-                            tile = top_tiles[yy][xx]
-                            if tile != -1:
-                                top_layer[y + yy][x + xx] = tile
-
                     # aplica base
                     for yy in range(h):
                         for xx in range(w):
                             tile = base_tiles[yy][xx]
                             if tile != -1:
-                                base_layer[y + yy][x + xx] = tile
+                                if base_layer[y + yy][x + xx] == -1:
+                                    base_layer[y + yy][x + xx] = []
+                                if isinstance(base_layer[y + yy][x + xx], list):
+                                    base_layer[y + yy][x + xx].append(tile)
+                                else:
+                                    base_layer[y + yy][x + xx] = [base_layer[y + yy][x + xx], tile]
+
+
+                    # aplica overlay
+                    for yy in range(len(top_tiles)):
+                        for xx in range(len(top_tiles[0])):
+                            tile = top_tiles[yy][xx]
+                            if tile != -1:
+                                if top_layer[y + yy][x + xx] == -1:
+                                    top_layer[y + yy][x + xx] = []
+                                if isinstance(top_layer[y + yy][x + xx], list):
+                                    top_layer[y + yy][x + xx].append(tile)
+                                else:
+                                    top_layer[y + yy][x + xx] = [top_layer[y + yy][x + xx], tile]
 
                     # aplica ornamentos
                     for yy in range(len(ornament_tiles)):
                         for xx in range(len(ornament_tiles[0])):
                             tile = ornament_tiles[yy][xx]
                             if tile != -1:
-                                ornament_layer[y + yy][x + xx] = tile
+                                if ornament_layer[y + yy][x + xx] == -1:
+                                    ornament_layer[y + yy][x + xx] = []
+                                if isinstance(ornament_layer[y + yy][x + xx], list):
+                                    ornament_layer[y + yy][x + xx].append(tile)
+                                else:
+                                    ornament_layer[y + yy][x + xx] = [ornament_layer[y + yy][x + xx], tile]
 
     
     def create_map(self):
@@ -266,11 +289,13 @@ class Level:
         layouts = {
             "boundary" : boundary,
             "dirt": self.map_layers["dirt"],
-            "grass": self.map_layers["grass"],
-            "house_overlayed": self.map_layers["house_overlayed"], 
-            "house_outside": self.map_layers["house_outside"],
-            "house_ornaments": self.map_layers["house_ornaments"]
+            "grass": self.map_layers["grass"]
         }
+        sufixes = ["_overlayed", "_outside", "_ornaments"]
+        objects = ["house", "tree"]
+        for object in objects:
+            for sufix in sufixes:
+                layouts[f'{object}{sufix}'] = self.map_layers[f'{object}{sufix}']
         
         for style, layout in layouts.items():
             for row_index, row in enumerate(layout):
@@ -278,24 +303,56 @@ class Level:
                     if col != -1:
                         x = col_index * TILESIZE
                         y = row_index * TILESIZE
-                
-                        if style == "boundary":
-                            Tile((x - 32, y - 32), [self.obstacles_sprites], "invisible")
 
-                        if style == "dirt":
-                            Tile((x, y), [self.visible_sprites], "floor", self.tilesets["dirt"][col], z_offset=-1000)
+                        if col != -1:
+                            if isinstance(col, list):
+                                for value in col:
+                                    if style == "house_overlayed":
+                                        Tile((x, y), [self.visible_sprites], "house", self.tilesets["house"][value], z_offset=1000)
+                                    
+                                    if style == "house_outside":
+                                        Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "house", self.tilesets["house"][value])
+                                    
+                                    if style == "house_ornaments":
+                                        Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "house", self.tilesets["house"][value])
+                                    
+                                    if style == "tree_overlayed":
+                                        Tile((x, y), [self.visible_sprites], "tree", self.tilesets["tree"][value], z_offset=-500)
+                                    
+                                    if style == "tree_outside":
+                                        Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "tree", self.tilesets["tree"][value])
+                                    
+                                    if style == "tree_ornaments":
+                                        Tile((x, y), [self.visible_sprites], "tree", self.tilesets["tree"][value], z_offset=1000)
+
+                            else:
+                                if style == "boundary":
+                                    Tile((x - 32, y - 32), [self.obstacles_sprites], "invisible")
+
+                                if style == "dirt":
+                                    Tile((x, y), [self.visible_sprites], "floor", self.tilesets["dirt"][col], z_offset=-1000)
+                                
+                                if style == "grass":
+                                    Tile((x, y), [self.visible_sprites], "floor", self.tilesets["grass"][col], z_offset=-1000)
+                                
+                                if style == "house_overlayed":
+                                    Tile((x, y), [self.visible_sprites], "house", self.tilesets["house"][col], z_offset=1000)
+                                
+                                if style == "house_outside":
+                                    Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "house", self.tilesets["house"][col])
+                                
+                                if style == "house_ornaments":
+                                    Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "house", self.tilesets["house"][col])
+                                
+                                if style == "tree_overlayed":
+                                    Tile((x, y), [self.visible_sprites], "tree", self.tilesets["tree"][col], z_offset=-500)
+                                
+                                if style == "tree_outside":
+                                    Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "tree", self.tilesets["tree"][col])
+                                
+                                if style == "tree_ornaments":
+                                    Tile((x, y), [self.visible_sprites], "tree", self.tilesets["tree"][col], z_offset=1000)
                         
-                        if style == "grass":
-                            Tile((x, y), [self.visible_sprites], "floor", self.tilesets["grass"][col], z_offset=-1000)
-                        
-                        if style == "house_overlayed":
-                            Tile((x, y), [self.visible_sprites], "house", self.tilesets["house"][col], z_offset=1000)
-                        
-                        if style == "house_outside":
-                            Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "house", self.tilesets["house"][col])
-                        
-                        if style == "house_ornaments":
-                            Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "house", self.tilesets["house"][col])
                 
         self.player = Player(
             (
@@ -306,7 +363,8 @@ class Level:
                 self.visible_sprites
             ],
             self.obstacles_sprites,
-            self.create_attack
+            self.create_attack,
+            self.destroy_attack
         )
 
 
@@ -339,8 +397,14 @@ class Level:
         return terrain_map
         
 
-    def create_attack(self):
-        Weapon(self.player, [self.visible_sprites])
+    def create_attack(self, size, vector_coordinates):
+        self.current_attack = Hitbox(self.player, [self.visible_sprites], size, vector_coordinates)
+    
+
+    def destroy_attack(self):
+        if self.current_attack:
+            self.current_attack.kill()
+        self.current_attack = None
 
 
     def run(self):
@@ -376,8 +440,9 @@ class YSortCameraGroup(pygame.sprite.Group):
             if screen_rect.colliderect(sprite_rect):
                 self.display_surface.blit(sprite.image, offset_pos)
             
-
             '''
-            if isinstance(sprite, Player):
-                sprite.hitbox_debug(offset=self.offset)
+            if isinstance(sprite, Tile):
+                if sprite.sprite_type == "tree":
+                    sprite.hitbox_debug(offset=self.offset)
             '''
+            

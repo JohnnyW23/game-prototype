@@ -3,7 +3,7 @@ from settings import *
 from debug import debug
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, obstacle_sprites, create_attack, z_offset=0):
+    def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, z_offset=0):
         super().__init__(groups)
 
         self.all_sprites = self.get_all_sprites()
@@ -16,10 +16,13 @@ class Player(pygame.sprite.Sprite):
         self.direction = pygame.math.Vector2()
         self.speed = 2
         self.attacking = False
-        self.attack_cooldown = 400
+        self.attack_type = None
+        self.attack_start = 30
+        self.attack_cooldown = 350
         self.combat_mode_cooldown = 2500
         self.attack_time = 0
         self.create_attack = create_attack
+        self.destroy_attack = destroy_attack
 
         self.weapon = "silver_sword"
 
@@ -142,27 +145,34 @@ class Player(pygame.sprite.Sprite):
                 self.is_running = False
         
         
-        if keys[pygame.K_j] and not self.attacking:
+        if keys[pygame.K_j]:
             self.attacking = True
+            self.attack_type = "slash"
             self.attack_time = pygame.time.get_ticks()
-            self.attack_cooldown = 400
+            self.attack_cooldown = 350
+            self.attack_start = 30
+            self.attack_triggered = True
             self.set_mode(f"slash_{self.weapon}")
-            self.create_attack()
-        
-        if keys[pygame.K_k] and not self.attacking:
-            self.attacking = True
-            self.attack_time = pygame.time.get_ticks()
-            self.attack_cooldown = 650
-            self.set_mode(f"halfslash_{self.weapon}")
-            self.create_attack()
-
-        if keys[pygame.K_l] and not self.attacking:
-            self.attacking = True
-            self.attack_time = pygame.time.get_ticks()
-            self.attack_cooldown = 900
-            self.set_mode(f"backslash_{self.weapon}")
-            self.create_attack()
             
+        
+        if keys[pygame.K_k]:
+            self.attacking = True
+            self.attack_type = "halfslash"
+            self.attack_time = pygame.time.get_ticks()
+            self.attack_cooldown = 475
+            self.attack_start = 30
+            self.attack_triggered = True
+            self.set_mode(f"halfslash_{self.weapon}")
+
+
+        if keys[pygame.K_l]:
+            self.attacking = True
+            self.attack_type = "backslash"
+            self.attack_time = pygame.time.get_ticks()
+            self.attack_cooldown = 700
+            self.attack_start = 30
+            self.attack_triggered = True
+            self.set_mode(f"backslash_{self.weapon}")
     
 
     def move(self, speed):
@@ -187,11 +197,11 @@ class Player(pygame.sprite.Sprite):
         elif mode == f"combat_{self.weapon}":
             self.animation_speed = 300
         elif mode == f"slash_{self.weapon}":
-            self.animation_speed = 78
+            self.animation_speed = 55
         elif mode == f"halfslash_{self.weapon}":
-            self.animation_speed = 80
+            self.animation_speed = 65
         elif mode == f"backslash_{self.weapon}":
-            self.animation_speed = 70
+            self.animation_speed = 60
         
         if mode != self.mode:
             self.current_frame = 0
@@ -220,14 +230,25 @@ class Player(pygame.sprite.Sprite):
 
     def cooldowns(self):
         current_time = pygame.time.get_ticks()
-
+        
         # ===== COOLDOWN DE ATAQUE =====
         if self.attacking:
+            attack_data =  ATTACK_TYPES_DATA[self.attack_type]
+            attack_start = attack_data["start"]
+            if current_time - self.attack_time >= attack_start and self.attack_triggered:
+                self.create_attack(
+                    attack_data["size"],
+                    attack_data["vector_coordinates"]
+                )
+                self.attack_triggered = False
+
             if current_time - self.attack_time >= self.attack_cooldown:
                 self.attacking = False
+                self.destroy_attack()
                 self.last_attack_time = current_time
                 self.set_mode(f"combat_{self.weapon}")
-        
+
+
         if self.mode == f"combat_{self.weapon}":
             if current_time - self.attack_time >= self.combat_mode_cooldown:
                 self.set_mode(f"idle_{self.weapon}")
@@ -260,6 +281,7 @@ class Player(pygame.sprite.Sprite):
                 if self.current_frame >= total_frames:
                     self.current_frame = 0
                     self.attacking = False
+                    self.destroy_attack()
                     # quando terminar o ataque, entra em Combat Idle
                     self.set_mode(f"combat_{self.weapon}")
             else:
@@ -283,4 +305,4 @@ class Player(pygame.sprite.Sprite):
         self.input()
         self.move(self.speed)
         self.animate()
-        
+        debug(self.attacking, y=50)

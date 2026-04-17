@@ -25,7 +25,6 @@ class Game:
 
                 self.level.player.handle_running(e)
             
-
             self.screen.fill('black')
             self.level.run()
             debug(f"FPS: {self.clock.get_fps():.2f}")
