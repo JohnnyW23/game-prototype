@@ -44,6 +44,58 @@ ATTACK_TYPES_DATA = {
     }
 }
 
+STYLE_CONFIG = {
+    "dirt": {
+        "tileset": "dirt",
+        "groups": lambda self: [self.visible_sprites],
+        "z": -1000,
+        "type": "floor",
+    },
+    "grass": {
+        "tileset": "grass",
+        "groups": lambda self: [self.visible_sprites],
+        "z": -1000,
+        "type": "floor",
+    },
+    "house_top": {
+        "tileset": "house",
+        "groups": lambda self: [self.visible_sprites],
+        "z": 1000,
+        "type": "house",
+    },
+    "house_base": {
+        "tileset": "house",
+        "groups": lambda self: [self.visible_sprites, self.obstacles_sprites],
+        "z": 0,
+        "type": "house",
+    },
+    "house_bottom": {
+        "tileset": "house",
+        "groups": lambda self: [self.visible_sprites],
+        "z": 0,
+        "type": "house",
+    },
+    "tree_top": {
+        "tileset": "tree",
+        "groups": lambda self: [self.visible_sprites],
+        "z": 1000,
+        "type": "tree",
+    },
+    "tree_base": {
+        "tileset": "tree",
+        "groups": lambda self: [self.visible_sprites, self.obstacles_sprites],
+        "z": 0,
+        "type": "tree",
+    },
+    "tree_bottom": {
+        "tileset": "tree",
+        "groups": lambda self: [self.visible_sprites],
+        "z": -500,
+        "type": "tree",
+    }
+}
+
+
 
 """
 PASSAGENS:

@@ -23,6 +23,10 @@ class Level:
         }
 
         self.create_floor_map()
+        self.building_grid = [
+            [False for _ in range(len(self.map_layers["dirt"][0]))]
+            for _ in range(len(self.map_layers["dirt"]))
+        ]
         self.generate_buildings()
         self.create_map()
     
@@ -151,22 +155,22 @@ class Level:
 
     def can_place_building(self, x, y, w, h, margin=1):
         dirt = self.map_layers["dirt"]
-        house = self.map_layers.get("house_outside")
 
         max_y = len(dirt)
         max_x = len(dirt[0])
 
         for yy in range(y - margin, y + h + margin):
             for xx in range(x - margin, x + w + margin):
+                # fora do mapa
                 if yy < 0 or yy >= max_y or xx < 0 or xx >= max_x:
                     return False
 
-                # terreno precisa ser vazio
+                # precisa ser terreno vazio
                 if dirt[yy][xx] != -1:
                     return False
 
-                # NÃO pode ter outra casa ali
-                if house and house[yy][xx] != -1:
+                # NÃO pode existir outra construção
+                if self.building_grid[yy][xx]:
                     return False
 
         return True
@@ -179,9 +183,9 @@ class Level:
         for building in buildings.keys():
             print(building)
 
-            overlayed = f'{building}_overlayed'
-            outside = f'{building}_outside'
-            ornaments = f'{building}_ornaments'
+            overlayed = f'{building}_top'
+            outside = f'{building}_base'
+            ornaments = f'{building}_bottom'
 
             dirt = self.map_layers["dirt"]
             map_h = len(dirt)
@@ -229,7 +233,7 @@ class Level:
                     for yy in range(h):
                         for xx in range(w):
                             if base_tiles[yy][xx] != -1:
-                                if not self.can_place_building(x + xx, y + yy, 1, 1, margin=1):
+                                if not self.can_place_building(x + xx, y + yy, 1, 1):
                                     valid = False
                                     break
                         if not valid:
@@ -239,16 +243,23 @@ class Level:
                         continue
 
                     # aplica base
+                    
                     for yy in range(h):
                         for xx in range(w):
                             tile = base_tiles[yy][xx]
                             if tile != -1:
+                                self.building_grid[y + yy][x + xx] = True
+
                                 if base_layer[y + yy][x + xx] == -1:
                                     base_layer[y + yy][x + xx] = []
+
                                 if isinstance(base_layer[y + yy][x + xx], list):
                                     base_layer[y + yy][x + xx].append(tile)
                                 else:
-                                    base_layer[y + yy][x + xx] = [base_layer[y + yy][x + xx], tile]
+                                    base_layer[y + yy][x + xx] = [
+                                        base_layer[y + yy][x + xx],
+                                        tile
+                                    ]
 
 
                     # aplica overlay
@@ -291,67 +302,48 @@ class Level:
             "dirt": self.map_layers["dirt"],
             "grass": self.map_layers["grass"]
         }
-        sufixes = ["_overlayed", "_outside", "_ornaments"]
+        sufixes = ["_top", "_base", "_bottom"]
         objects = ["house", "tree"]
         for object in objects:
             for sufix in sufixes:
                 layouts[f'{object}{sufix}'] = self.map_layers[f'{object}{sufix}']
         
         for style, layout in layouts.items():
-            for row_index, row in enumerate(layout):
-                for col_index, col in enumerate(row):
-                    if col != -1:
-                        x = col_index * TILESIZE
-                        y = row_index * TILESIZE
-
+            if style == "boundary":
+                for row_index, row in enumerate(layout):
+                    for col_index, col in enumerate(row):
                         if col != -1:
-                            if isinstance(col, list):
-                                for value in col:
-                                    if style == "house_overlayed":
-                                        Tile((x, y), [self.visible_sprites], "house", self.tilesets["house"][value], z_offset=1000)
-                                    
-                                    if style == "house_outside":
-                                        Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "house", self.tilesets["house"][value])
-                                    
-                                    if style == "house_ornaments":
-                                        Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "house", self.tilesets["house"][value])
-                                    
-                                    if style == "tree_overlayed":
-                                        Tile((x, y), [self.visible_sprites], "tree", self.tilesets["tree"][value], z_offset=-500)
-                                    
-                                    if style == "tree_outside":
-                                        Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "tree", self.tilesets["tree"][value])
-                                    
-                                    if style == "tree_ornaments":
-                                        Tile((x, y), [self.visible_sprites], "tree", self.tilesets["tree"][value], z_offset=1000)
+                            x = col_index * TILESIZE
+                            y = row_index * TILESIZE
+                            Tile((x - 32, y - 32), [self.obstacles_sprites], "invisible")
+                continue
 
-                            else:
-                                if style == "boundary":
-                                    Tile((x - 32, y - 32), [self.obstacles_sprites], "invisible")
+            config = STYLE_CONFIG.get(style)
+            if not config:
+                continue
 
-                                if style == "dirt":
-                                    Tile((x, y), [self.visible_sprites], "floor", self.tilesets["dirt"][col], z_offset=-1000)
-                                
-                                if style == "grass":
-                                    Tile((x, y), [self.visible_sprites], "floor", self.tilesets["grass"][col], z_offset=-1000)
-                                
-                                if style == "house_overlayed":
-                                    Tile((x, y), [self.visible_sprites], "house", self.tilesets["house"][col], z_offset=1000)
-                                
-                                if style == "house_outside":
-                                    Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "house", self.tilesets["house"][col])
-                                
-                                if style == "house_ornaments":
-                                    Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "house", self.tilesets["house"][col])
-                                
-                                if style == "tree_overlayed":
-                                    Tile((x, y), [self.visible_sprites], "tree", self.tilesets["tree"][col], z_offset=-500)
-                                
-                                if style == "tree_outside":
-                                    Tile((x, y), [self.visible_sprites, self.obstacles_sprites], "tree", self.tilesets["tree"][col])
-                                
-                                if style == "tree_ornaments":
-                                    Tile((x, y), [self.visible_sprites], "tree", self.tilesets["tree"][col], z_offset=1000)
+            tileset = self.tilesets[config["tileset"]]
+            groups_fn = config["groups"]
+            z = config["z"]
+            sprite_type = config["type"]
+
+            for row_index, row in enumerate(layout):
+                for col_index, cell in enumerate(row):
+                    if cell == -1:
+                        continue
+
+                    x = col_index * TILESIZE
+                    y = row_index * TILESIZE
+
+                    for tile_index in self.normalize_cell(cell):
+                        Tile(
+                            (x, y),
+                            groups_fn(self),
+                            sprite_type,
+                            tileset[tile_index],
+                            z_offset=z
+                        )
+
                         
                 
         self.player = Player(
@@ -366,6 +358,18 @@ class Level:
             self.create_attack,
             self.destroy_attack
         )
+    
+
+    def normalize_cell(self, cell):
+        if isinstance(cell, list):
+            result = []
+            for item in cell:
+                if isinstance(item, list):
+                    result.extend(item)
+                else:
+                    result.append(item)
+            return result
+        return [cell]
 
 
     def slice_tiles(self, image_path):

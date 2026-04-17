@@ -15,10 +15,7 @@ class Tile(pygame.sprite.Sprite):
         self.image = surface
         self.rect = self.image.get_rect(topleft=pos)
 
-        if sprite_type == "tree":
-            self.hitbox = self.rect.inflate(0, 0)
-        else:
-            self.hitbox = self.rect.inflate(0, -10)
+        self.hitbox = self.rect.inflate(0, -10)
 
         self.z_offset = z_offset
 
@@ -28,4 +25,3 @@ class Tile(pygame.sprite.Sprite):
         offset_hitbox = self.hitbox.copy()
         offset_hitbox.topleft -= offset
         pygame.draw.rect(display_surface, (255, 0, 0), offset_hitbox, 1)
-
