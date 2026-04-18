@@ -1,5 +1,6 @@
 import pygame
 from settings import *
+from maps import MAPS
 from tile import Tile
 from player import Player
 from hitbox import Hitbox
@@ -180,18 +181,16 @@ class Level:
         import random
         from buildings import buildings
 
-        for building in buildings.keys():
-            print(building)
+        dirt = self.map_layers["dirt"]
+        map_h = len(dirt)
+        map_w = len(dirt[0])
 
+        # cria layers para todos os tipos de building
+        for building in buildings.keys():
             overlayed = f'{building}_top'
             outside = f'{building}_base'
             ornaments = f'{building}_bottom'
 
-            dirt = self.map_layers["dirt"]
-            map_h = len(dirt)
-            map_w = len(dirt[0])
-
-            # cria layers se não existirem
             if overlayed not in self.map_layers:
                 self.map_layers[overlayed] = [[-1 for _ in range(map_w)] for _ in range(map_h)]
             if outside not in self.map_layers:
@@ -199,23 +198,27 @@ class Level:
             if ornaments not in self.map_layers:
                 self.map_layers[ornaments] = [[-1 for _ in range(map_w)] for _ in range(map_h)]
 
-            top_layer = self.map_layers[overlayed]
-            base_layer = self.map_layers[outside]
-            ornament_layer = self.map_layers[ornaments]
-
-            # percorre o mapa
-            for y in range(map_h):
-                for x in range(map_w):
-
-                    # sorteia modelo a cada tentativa
-                    model_name = random.choice(list(buildings[building].keys()))
-                    model = buildings[building][model_name]
-                    chance = model["chance"]
-
-                    if random.random() > chance:
+        # percorre o mapa verticalmente
+        for y in range(map_h):
+            for x in range(map_w):
+                # sorteia qual tipo de building tentar
+                for building, building_data in buildings.items():
+                    if random.random() > building_data["chance"]:
                         continue
 
-                    model = buildings[building][model_name]
+                    overlayed = f'{building}_top'
+                    outside = f'{building}_base'
+                    ornaments = f'{building}_bottom'
+
+                    top_layer = self.map_layers[overlayed]
+                    base_layer = self.map_layers[outside]
+                    ornament_layer = self.map_layers[ornaments]
+
+                    # sorteia modelo
+                    model_name = random.choice([m for m in building_data.keys() if m != "chance"])
+                    model = building_data[model_name]
+                    if random.random() > model["chance"]:
+                        continue
 
                     base_tiles = model[outside]
                     top_tiles = model[overlayed]
@@ -224,11 +227,10 @@ class Level:
                     h = len(base_tiles)
                     w = len(base_tiles[0])
 
-                    # checa se cabe no mapa
                     if y + h > map_h or x + w > map_w:
                         continue
 
-                    # valida posição usando apenas as células do outside que não são -1
+                    # valida posição
                     valid = True
                     for yy in range(h):
                         for xx in range(w):
@@ -243,24 +245,17 @@ class Level:
                         continue
 
                     # aplica base
-                    
                     for yy in range(h):
                         for xx in range(w):
                             tile = base_tiles[yy][xx]
                             if tile != -1:
                                 self.building_grid[y + yy][x + xx] = True
-
                                 if base_layer[y + yy][x + xx] == -1:
                                     base_layer[y + yy][x + xx] = []
-
                                 if isinstance(base_layer[y + yy][x + xx], list):
                                     base_layer[y + yy][x + xx].append(tile)
                                 else:
-                                    base_layer[y + yy][x + xx] = [
-                                        base_layer[y + yy][x + xx],
-                                        tile
-                                    ]
-
+                                    base_layer[y + yy][x + xx] = [base_layer[y + yy][x + xx], tile]
 
                     # aplica overlay
                     for yy in range(len(top_tiles)):
@@ -343,7 +338,6 @@ class Level:
                             tileset[tile_index],
                             z_offset=z
                         )
-
                         
                 
         self.player = Player(

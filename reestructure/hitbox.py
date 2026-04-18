@@ -5,7 +5,7 @@ class Hitbox(pygame.sprite.Sprite):
     def __init__(self, player, groups, size, vector_coordinates):
         super().__init__(groups)
         direction = player.direction_row
-        self.image = pygame.Surface(size)
+        self.image = pygame.Surface(size, pygame.SRCALPHA)
         if direction == 0:
             self.rect = self.image.get_rect(midbottom = player.rect.midtop - pygame.math.Vector2(vector_coordinates[0]))
         elif direction == 1:

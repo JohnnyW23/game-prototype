@@ -49,7 +49,7 @@ PASSAGENS:
 ]
 """
 
-maps = {
+MAPS = {
     "chunk_1": {
         "model_1": {
             "dirt": [

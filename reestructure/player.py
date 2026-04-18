@@ -24,9 +24,20 @@ class Player(pygame.sprite.Sprite):
         self.create_attack = create_attack
         self.destroy_attack = destroy_attack
 
-        self.weapon = "silver_sword"
+        self.weapons = {
+            "sword": ["brass_sword", "silver_sword"],
+            "bow": ["bow"]
+        }
+        self.selected_weapon_type = "sword"
+        self.weapon_index = 0
 
-        self.double_tap_delay = 500
+        self.weapon = self.weapons[self.selected_weapon_type][self.weapon_index]
+
+        self.can_switch_weapon = True
+        self.weapon_switch_time = None
+        self.switch_duration_cooldown = 200
+
+        self.double_tap_delay = 200
 
         self.last_press_time = {
             pygame.K_a: 0,
@@ -169,10 +180,22 @@ class Player(pygame.sprite.Sprite):
             self.attacking = True
             self.attack_type = "backslash"
             self.attack_time = pygame.time.get_ticks()
-            self.attack_cooldown = 700
+            self.attack_cooldown = 800
             self.attack_start = 30
             self.attack_triggered = True
             self.set_mode(f"backslash_{self.weapon}")
+        
+
+        if keys[pygame.K_o] and self.can_switch_weapon:
+            self.can_switch_weapon = False
+            self.weapon_switch_time = pygame.time.get_ticks()
+            if len(self.weapons[self.selected_weapon_type]) - 1 == self.weapon_index:
+                self.weapon_index = 0
+            else:
+                self.weapon_index += 1
+            
+            self.weapon = self.weapons[self.selected_weapon_type][self.weapon_index]
+            
     
 
     def move(self, speed):
@@ -252,6 +275,11 @@ class Player(pygame.sprite.Sprite):
         if self.mode == f"combat_{self.weapon}":
             if current_time - self.attack_time >= self.combat_mode_cooldown:
                 self.set_mode(f"idle_{self.weapon}")
+        
+
+        if not self.can_switch_weapon:
+            if current_time - self.weapon_switch_time >= self.switch_duration_cooldown:
+                self.can_switch_weapon = True
     
 
     def handle_running(self, event):

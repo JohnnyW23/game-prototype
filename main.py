@@ -5,7 +5,7 @@ class Game:
     def __init__(self):
         from character import generate_character
         from tileset import TileSet
-        from map_models.maps import maps
+        from reestructure.maps import maps
 
         pygame.init()
 
