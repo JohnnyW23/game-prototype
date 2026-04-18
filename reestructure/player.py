@@ -5,16 +5,25 @@ from debug import debug
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, groups, obstacle_sprites, create_attack, destroy_attack, z_offset=0):
         super().__init__(groups)
+        
+        # map interaction
+        self.obstacle_sprites = obstacle_sprites
+        self.z_offset = z_offset
 
+        # loads all sprites for player
         self.all_sprites = self.get_all_sprites()
 
+        # animation
         self.animation_timer = 0
         self.animation_speed = 600
         self.last_animation_time = pygame.time.get_ticks()
         self.current_frame = 0
-
         self.direction = pygame.math.Vector2()
-        self.speed = 2
+        self.is_running = False
+        self.run_direction = None
+        self.direction_row = 3 
+
+        # attacking data
         self.attacking = False
         self.attack_type = None
         self.attack_start = 30
@@ -24,37 +33,31 @@ class Player(pygame.sprite.Sprite):
         self.create_attack = create_attack
         self.destroy_attack = destroy_attack
 
+        # weapon data
         self.weapons = {
             "sword": ["brass_sword", "silver_sword"],
-            "bow": ["bow"]
+            "bow": ["normal_bow"]
         }
         self.selected_weapon_type = "sword"
         self.weapon_index = 0
-
         self.weapon = self.weapons[self.selected_weapon_type][self.weapon_index]
-
         self.can_switch_weapon = True
         self.weapon_switch_time = None
         self.switch_duration_cooldown = 200
 
+        # run system
         self.double_tap_delay = 200
-
         self.last_press_time = {
             pygame.K_a: 0,
             pygame.K_d: 0,
             pygame.K_w: 0,
             pygame.K_s: 0
         }
-        
-        self.obstacle_sprites = obstacle_sprites
 
-        self.z_offset = z_offset
-
+        # player mode
         self.mode = f"idle_{self.weapon}"
-        self.is_running = False
-        self.run_direction = None
-        self.direction_row = 3 
 
+        # player surface creation
         self.image = self.get_frame(self.current_frame)
         self.rect = self.image.get_rect(topleft = pos)
         self.hitbox = pygame.Rect(
@@ -63,6 +66,21 @@ class Player(pygame.sprite.Sprite):
             32,
             24
         )
+
+        # player stats
+        self.stats = {
+            'health': 100,
+            'energy': 60,
+            'attack': 10,
+            'magic': 4,
+            'speed': 2
+        }
+        self.health = self.stats['health']
+        self.energy = self.stats['energy']
+        self.attack = self.stats['attack']
+        self.magic = self.stats['magic']
+        self.speed = self.stats['speed']
+        self.exp = 123
 
 
     def get_all_sprites(self):
@@ -107,7 +125,7 @@ class Player(pygame.sprite.Sprite):
 
         image = self.all_sprites[self.mode]
 
-        if "slash" in self.mode:
+        if image.get_height() == 512:
             frame = image.subsurface(big_rect)
             composed.blit(frame, (0, 0))
         else:
@@ -155,36 +173,47 @@ class Player(pygame.sprite.Sprite):
                 self.set_mode(f"idle_{self.weapon}")
                 self.is_running = False
         
-        
-        if keys[pygame.K_j]:
-            self.attacking = True
-            self.attack_type = "slash"
-            self.attack_time = pygame.time.get_ticks()
-            self.attack_cooldown = 350
-            self.attack_start = 30
-            self.attack_triggered = True
-            self.set_mode(f"slash_{self.weapon}")
+        if self.selected_weapon_type == "sword":
+            if keys[pygame.K_j]:
+                self.attacking = True
+                self.attack_type = "slash"
+                self.attack_time = pygame.time.get_ticks()
+                self.attack_cooldown = 350
+                self.attack_start = 30
+                self.attack_triggered = True
+                self.set_mode(f"slash_{self.weapon}")
+                
             
-        
-        if keys[pygame.K_k]:
-            self.attacking = True
-            self.attack_type = "halfslash"
-            self.attack_time = pygame.time.get_ticks()
-            self.attack_cooldown = 475
-            self.attack_start = 30
-            self.attack_triggered = True
-            self.set_mode(f"halfslash_{self.weapon}")
+            if keys[pygame.K_k]:
+                self.attacking = True
+                self.attack_type = "halfslash"
+                self.attack_time = pygame.time.get_ticks()
+                self.attack_cooldown = 475
+                self.attack_start = 30
+                self.attack_triggered = True
+                self.set_mode(f"halfslash_{self.weapon}")
 
 
-        if keys[pygame.K_l]:
-            self.attacking = True
-            self.attack_type = "backslash"
-            self.attack_time = pygame.time.get_ticks()
-            self.attack_cooldown = 800
-            self.attack_start = 30
-            self.attack_triggered = True
-            self.set_mode(f"backslash_{self.weapon}")
+            if keys[pygame.K_l]:
+                self.attacking = True
+                self.attack_type = "backslash"
+                self.attack_time = pygame.time.get_ticks()
+                self.attack_cooldown = 800
+                self.attack_start = 30
+                self.attack_triggered = True
+                self.set_mode(f"backslash_{self.weapon}")
+
         
+        if self.selected_weapon_type == "bow":
+            if keys[pygame.K_j] or keys[pygame.K_k] or keys[pygame.K_l]:
+                self.attacking = True
+                self.attack_type = "shoot"
+                self.attack_time = pygame.time.get_ticks()
+                self.attack_cooldown = 600
+                self.attack_start = 0
+                self.attack_triggered = True
+                self.set_mode(f"shoot_{self.weapon}")
+
 
         if keys[pygame.K_o] and self.can_switch_weapon:
             self.can_switch_weapon = False
@@ -194,6 +223,17 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.weapon_index += 1
             
+            self.weapon = self.weapons[self.selected_weapon_type][self.weapon_index]
+        
+        if keys[pygame.K_u] and self.can_switch_weapon:
+            self.can_switch_weapon = False
+            self.weapon_switch_time = pygame.time.get_ticks()
+            self.weapon_index = 0
+            if self.selected_weapon_type == "sword":
+                self.selected_weapon_type = "bow"
+            else:
+                self.selected_weapon_type = "sword"
+        
             self.weapon = self.weapons[self.selected_weapon_type][self.weapon_index]
             
     
@@ -225,6 +265,8 @@ class Player(pygame.sprite.Sprite):
             self.animation_speed = 65
         elif mode == f"backslash_{self.weapon}":
             self.animation_speed = 60
+        elif mode == f"shoot_{self.weapon}":
+            self.animation_speed = 50
         
         if mode != self.mode:
             self.current_frame = 0
@@ -258,7 +300,7 @@ class Player(pygame.sprite.Sprite):
         if self.attacking:
             attack_data =  ATTACK_TYPES_DATA[self.attack_type]
             attack_start = attack_data["start"]
-            if current_time - self.attack_time >= attack_start and self.attack_triggered:
+            if current_time - self.attack_time >= attack_start and self.attack_triggered and self.selected_weapon_type == "sword":
                 self.create_attack(
                     attack_data["size"],
                     attack_data["vector_coordinates"]

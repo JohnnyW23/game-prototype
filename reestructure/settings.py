@@ -3,6 +3,14 @@ HEIGHT   = 600
 FPS      = 60
 TILESIZE = 32
 
+# UI
+BAR_HEIGHT = 20
+HEALTH_BAR__WIDTH = 200
+ENERGY_BAR_WIDTH = 140
+INTEM_BOX_SIZE = 80
+UI_FONT = '../assets/fonts/DejaVuSans.ttf'
+
+# frames for each of player modes
 PLAYER_FRAMES = {
     "backslash": 13,
     "climb": 6,
@@ -16,9 +24,11 @@ PLAYER_FRAMES = {
     "sit": 1,
     "slash": 5,
     "speelcast": 7,
-    "walk": 9
+    "walk": 9,
+    "shoot": 13
 }
 
+# weapons
 WEAPON_DATA = {
     "brass_sword": {
         "base_damage": 8
@@ -28,6 +38,7 @@ WEAPON_DATA = {
     }
 }
 
+# hitboxes for attacks
 ATTACK_TYPES_DATA = {
     "slash": {
         "start": 120,
@@ -43,9 +54,15 @@ ATTACK_TYPES_DATA = {
         "start": 140,
         "size": (33, 36),
         "vector_coordinates": [(0, -52), (44, 12), (0, -44), (44, -12)]
+    },
+    "shoot": {
+        "start": 0,
+        "size": None,
+        "vector_coordinates": None
     }
 }
 
+# map tiles settings
 STYLE_CONFIG = {
     "dirt": {
         "tileset": "dirt",

@@ -4,32 +4,27 @@ from maps import MAPS
 from tile import Tile
 from player import Player
 from hitbox import Hitbox
+from ui import UI
 
 
 class Level:
     def __init__(self):
 
+        # get the display surface
         self.display_surface = pygame.display.get_surface()
         
+        # sprite group setup
         self.visible_sprites = YSortCameraGroup()
         self.obstacles_sprites = pygame.sprite.Group()
 
+        # attack hitbox surface
         self.current_attack = None
 
-        self.tilesets = {
-            "dirt": self.slice_tiles("map_assets/tiles/dirt.png"),
-            "grass": self.slice_tiles("map_assets/tiles/grass.png"),
-            "house": self.slice_tiles("map_assets/tiles/house.png"),
-            "tree": self.slice_tiles("map_assets/tiles/tree.png")
-        }
-
-        self.create_floor_map()
-        self.building_grid = [
-            [False for _ in range(len(self.map_layers["dirt"][0]))]
-            for _ in range(len(self.map_layers["dirt"]))
-        ]
-        self.generate_buildings()
+        # sprite setup
         self.create_map()
+
+        # user interface
+        self.ui = UI()
     
 
     def create_floor_map(self):
@@ -283,6 +278,20 @@ class Level:
 
     
     def create_map(self):
+        self.tilesets = {
+            "dirt": self.slice_tiles("map_assets/tiles/dirt.png"),
+            "grass": self.slice_tiles("map_assets/tiles/grass.png"),
+            "house": self.slice_tiles("map_assets/tiles/house.png"),
+            "tree": self.slice_tiles("map_assets/tiles/tree.png")
+        }
+
+        self.create_floor_map()
+        self.building_grid = [
+            [False for _ in range(len(self.map_layers["dirt"][0]))]
+            for _ in range(len(self.map_layers["dirt"]))
+        ]
+        self.generate_buildings()
+
         boundary = []
         complete_row = [0 for _ in range(77)]
         border_row = [0] + [-1 for _ in range(75)] + [0]
@@ -406,8 +415,10 @@ class Level:
 
 
     def run(self):
+        # update and draw the game
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update()
+        self.ui.display(self.player)
     
 
 class YSortCameraGroup(pygame.sprite.Group):
