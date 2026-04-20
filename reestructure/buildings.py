@@ -106,5 +106,23 @@ buildings = {
                 [54, 55, 56]
             ],
         }
+    },
+    "barrel": {
+        "chance": 0.005,
+        "model1": {
+            "chance": 1,
+            "barrel_top": [
+                [ 1],
+                [-1]
+            ],
+            "barrel_base": [
+                [-1],
+                [ 5]
+            ],
+            "barrel_bottom": [
+                [-1],
+                [-1]
+            ]
+        }
     }
 }

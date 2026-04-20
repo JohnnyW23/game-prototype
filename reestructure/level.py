@@ -3,6 +3,7 @@ from settings import *
 from maps import MAPS
 from tile import Tile
 from player import Player
+from enemy import Enemy
 from hitbox import Hitbox
 from ui import UI
 
@@ -19,6 +20,8 @@ class Level:
 
         # attack hitbox surface
         self.current_attack = None
+        self.attack_sprites = pygame.sprite.Group()
+        self.attackable_sprites = pygame.sprite.Group()
 
         # sprite setup
         self.create_map()
@@ -175,6 +178,7 @@ class Level:
     def generate_buildings(self):
         import random
         from buildings import buildings
+        import uuid
 
         dirt = self.map_layers["dirt"]
         map_h = len(dirt)
@@ -239,6 +243,8 @@ class Level:
                     if not valid:
                         continue
 
+                    building_id = uuid.uuid4()
+
                     # aplica base
                     for yy in range(h):
                         for xx in range(w):
@@ -247,10 +253,8 @@ class Level:
                                 self.building_grid[y + yy][x + xx] = True
                                 if base_layer[y + yy][x + xx] == -1:
                                     base_layer[y + yy][x + xx] = []
-                                if isinstance(base_layer[y + yy][x + xx], list):
-                                    base_layer[y + yy][x + xx].append(tile)
-                                else:
-                                    base_layer[y + yy][x + xx] = [base_layer[y + yy][x + xx], tile]
+
+                                base_layer[y + yy][x + xx].append((tile, building_id))
 
                     # aplica overlay
                     for yy in range(len(top_tiles)):
@@ -259,10 +263,8 @@ class Level:
                             if tile != -1:
                                 if top_layer[y + yy][x + xx] == -1:
                                     top_layer[y + yy][x + xx] = []
-                                if isinstance(top_layer[y + yy][x + xx], list):
-                                    top_layer[y + yy][x + xx].append(tile)
-                                else:
-                                    top_layer[y + yy][x + xx] = [top_layer[y + yy][x + xx], tile]
+
+                                top_layer[y + yy][x + xx].append((tile, building_id))
 
                     # aplica ornamentos
                     for yy in range(len(ornament_tiles)):
@@ -271,18 +273,20 @@ class Level:
                             if tile != -1:
                                 if ornament_layer[y + yy][x + xx] == -1:
                                     ornament_layer[y + yy][x + xx] = []
-                                if isinstance(ornament_layer[y + yy][x + xx], list):
-                                    ornament_layer[y + yy][x + xx].append(tile)
-                                else:
-                                    ornament_layer[y + yy][x + xx] = [ornament_layer[y + yy][x + xx], tile]
+
+                                ornament_layer[y + yy][x + xx].append((tile, building_id))
 
     
     def create_map(self):
+        import random
+        import uuid
+
         self.tilesets = {
             "dirt": self.slice_tiles("map_assets/tiles/dirt.png"),
             "grass": self.slice_tiles("map_assets/tiles/grass.png"),
             "house": self.slice_tiles("map_assets/tiles/house.png"),
-            "tree": self.slice_tiles("map_assets/tiles/tree.png")
+            "tree": self.slice_tiles("map_assets/tiles/tree.png"),
+            "barrel": self.slice_tiles("map_assets/tiles/barrel.png")
         }
 
         self.create_floor_map()
@@ -307,7 +311,7 @@ class Level:
             "grass": self.map_layers["grass"]
         }
         sufixes = ["_top", "_base", "_bottom"]
-        objects = ["house", "tree"]
+        objects = ["house", "tree", "barrel"]
         for object in objects:
             for sufix in sufixes:
                 layouts[f'{object}{sufix}'] = self.map_layers[f'{object}{sufix}']
@@ -339,40 +343,76 @@ class Level:
                     x = col_index * TILESIZE
                     y = row_index * TILESIZE
 
-                    for tile_index in self.normalize_cell(cell):
+                    for tile_index, tile_id in self.normalize_cell(cell):
                         Tile(
                             (x, y),
                             groups_fn(self),
                             sprite_type,
+                            tile_id,  # <- agora vem do building
                             tileset[tile_index],
                             z_offset=z
                         )
                         
-                
         self.player = Player(
             (
-                75 * (TILESIZE / 2) - 32,
-                75 * (TILESIZE / 2) - 32
+                75 * (TILESIZE / 2) - 16,
+                75 * (TILESIZE / 2) - 12
             ),
             [
                 self.visible_sprites
             ],
+            "assets/characters/sprites",
             self.obstacles_sprites,
             self.create_attack,
-            self.destroy_attack
+            self.destroy_attack,
+            self.create_magic
         )
+
+        for y in range(len(self.building_grid)):
+            for x in range(len(self.building_grid[0])):
+                if 25 < y < 51 or 25 < x < 51:
+                    continue
+                if random.random() <= 0.01 and not self.building_grid[y][x]:
+                    name = random.choice(list(ENEMY_DATA.keys()))
+                    enemy_x = x * TILESIZE
+                    enemy_y = y * TILESIZE
+                    id = uuid.uuid4()
+
+                    self.enemy = Enemy(
+                        name,
+                        id,
+                        (enemy_x, enemy_y),
+                        [self.visible_sprites, self.attackable_sprites],
+                        ENEMY_DATA[name]['graphic'],
+                        self.obstacles_sprites,
+                        self.damage_player
+                    )
     
 
     def normalize_cell(self, cell):
-        if isinstance(cell, list):
-            result = []
-            for item in cell:
-                if isinstance(item, list):
-                    result.extend(item)
-                else:
-                    result.append(item)
-            return result
-        return [cell]
+        if cell == -1:
+            return []
+
+        result = []
+
+        def process(item, tile_id=None):
+            # caso (tile, id)
+            if isinstance(item, tuple):
+                tile, tid = item
+                process(tile, tid)
+                return
+
+            # caso lista de tiles
+            if isinstance(item, list):
+                for sub in item:
+                    process(sub, tile_id)
+                return
+
+            # caso int
+            result.append((item, tile_id))
+
+        process(cell)
+        return result
 
 
     def slice_tiles(self, image_path):
@@ -405,8 +445,14 @@ class Level:
         
 
     def create_attack(self, size, vector_coordinates):
-        self.current_attack = Hitbox(self.player, [self.visible_sprites], size, vector_coordinates)
-    
+        self.current_attack = Hitbox(self.player, [self.visible_sprites, self.attack_sprites], size, vector_coordinates)
+
+
+    def create_magic(self, style, strenght, cost):
+        print(style)
+        print(strenght)
+        print(cost)
+
 
     def destroy_attack(self):
         if self.current_attack:
@@ -414,10 +460,51 @@ class Level:
         self.current_attack = None
 
 
+    def attack_collision(self, attack_sprite, target_sprite):
+        if target_sprite.sprite_type == "enemy":
+            return attack_sprite.rect.colliderect(target_sprite.dmg_hitbox)
+
+        return attack_sprite.rect.colliderect(target_sprite.rect)
+
+
+    def player_attack_logic(self):
+        if self.attack_sprites:
+            for attack_sprite in self.attack_sprites:
+
+                collision_sprites = pygame.sprite.spritecollide(
+                    attack_sprite,
+                    self.attackable_sprites,
+                    False,
+                    collided=self.attack_collision
+                )
+
+                for target_sprite in collision_sprites:
+                    if target_sprite.sprite_type == 'barrel':
+                        target_id = getattr(target_sprite, "id", None)
+
+                        for sprite in self.attackable_sprites.copy():
+                            if getattr(sprite, "id", None) == target_id:
+                                sprite.kill()
+                    
+                    else:
+                        target_sprite.get_damage(self.player, attack_sprite.sprite_type)
+
+
+    def damage_player(self, amount, attack_type):
+        if self.player.vulnerable:
+            self.player.health -= amount
+            self.player.vulnerable = False
+            self.player.hurt_time = pygame.time.get_ticks()
+            # spawn particles
+
+
+
     def run(self):
         # update and draw the game
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update()
+        self.visible_sprites.enemy_update(self.player)
+        self.player_attack_logic()
         self.ui.display(self.player)
     
 
@@ -450,8 +537,12 @@ class YSortCameraGroup(pygame.sprite.Group):
                 self.display_surface.blit(sprite.image, offset_pos)
             
             '''
-            if isinstance(sprite, Tile):
-                if sprite.sprite_type == "tree":
-                    sprite.hitbox_debug(offset=self.offset)
+            if isinstance(sprite, Enemy):
+                sprite.hitbox_debug(offset=self.offset)
             '''
-            
+
+
+    def enemy_update(self, player):
+        enemy_sprites = [sprite for sprite in self.sprites() if hasattr(sprite, 'sprite_type') and sprite.sprite_type == 'enemy']
+        for enemy in enemy_sprites:
+            enemy.enemy_update(player)

@@ -4,8 +4,14 @@ import pygame
 class Hitbox(pygame.sprite.Sprite):
     def __init__(self, player, groups, size, vector_coordinates):
         super().__init__(groups)
+
+        self.sprite_type = 'weapon'
         direction = player.direction_row
+
+        # graphic
         self.image = pygame.Surface(size, pygame.SRCALPHA)
+
+        # placement
         if direction == 0:
             self.rect = self.image.get_rect(midbottom = player.rect.midtop - pygame.math.Vector2(vector_coordinates[0]))
         elif direction == 1:

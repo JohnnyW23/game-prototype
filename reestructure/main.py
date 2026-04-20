@@ -8,15 +8,14 @@ class Game:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption('Huntersight')
+        pygame.display.set_caption('Relentless')
         self.clock = pygame.time.Clock()
 
         self.level = Level()
-        
-    
+
+
     def run(self):
         while True:
-
             events = pygame.event.get()
             for e in events:
                 if e.type == pygame.QUIT:
@@ -27,7 +26,7 @@ class Game:
             
             self.screen.fill('black')
             self.level.run()
-            debug(f"FPS: {self.clock.get_fps():.2f}")
+            # debug(f"FPS: {self.clock.get_fps():.2f}")
             pygame.display.update()
             self.clock.tick(FPS)
 

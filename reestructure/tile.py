@@ -7,11 +7,13 @@ class Tile(pygame.sprite.Sprite):
         pos,
         groups,
         sprite_type,
+        id=None,
         surface=pygame.Surface((TILESIZE, TILESIZE)),
         z_offset=0
     ):
         super().__init__(groups)
         self.sprite_type = sprite_type
+        self.id = id
         self.image = surface
         self.rect = self.image.get_rect(topleft=pos)
 
