@@ -15,6 +15,7 @@ class Enemy(Entity):
         # movement
         self.rect = self.image.get_rect(topleft = pos)
         self.obstacle_sprites = obstacle_sprites
+        self.moving = False
 
         # stats
         self.name = name
@@ -31,8 +32,10 @@ class Enemy(Entity):
         # player interaction
         self.can_attack = True
         self.attack_time = None
+        self.attacking = False
         self.attack_cooldown = enemy_info['attack_cooldown']
         self.damage_player = damage_player
+        self.dying = False
 
         # invincibility timer
         self.vulnerable = True
@@ -61,15 +64,22 @@ class Enemy(Entity):
         player_vec = pygame.math.Vector2(player.hitbox.center)
         distance = (player_vec - enemy_vec).magnitude()
 
-        if distance > 0:
+        if distance > 32:
             direction = (player_vec - enemy_vec).normalize()
+            self.moving = True
         else:
+            self.moving = False
             direction = pygame.math.Vector2()
+    
 
         return (distance, direction)
     
 
     def get_status(self, player):
+
+        if self.attacking or self.health <= 0 or self.dying:
+            return
+            
         distance = self.get_player_distance_direction(player)[0]
 
         if distance <= self.attack_radius and self.can_attack:
@@ -81,26 +91,49 @@ class Enemy(Entity):
     
 
     def actions(self, player):
-        if self.mode == 'idle':
+        
+        if self.mode == 'idle' or self.dying:
             self.direction = pygame.math.Vector2()
         
         else:
             self.direction = self.get_player_distance_direction(player)[1]
 
-            if abs(self.direction.x) > abs(self.direction.y):
-                if self.direction.x > 0:
-                    self.direction_row = 3  # direita
+            if self.moving:
+                if abs(self.direction.x) > abs(self.direction.y):
+                    if self.direction.x > 0:
+                        self.direction_row = 3  # direita
+                    else:
+                        self.direction_row = 1  # esquerda
                 else:
-                    self.direction_row = 1  # esquerda
-            else:
-                if self.direction.y > 0:
-                    self.direction_row = 2  # baixo
-                else:
-                    self.direction_row = 0  # cima
+                    if self.direction.y > 0:
+                        self.direction_row = 2  # baixo
+                    else:
+                        self.direction_row = 0  # cima
 
-            if self.mode == self.attack_type:
+            if self.mode == self.attack_type and not self.attacking:
+                self.attacking = True
+                self.can_attack = False
                 self.attack_time = pygame.time.get_ticks()
                 self.damage_player(self.damage, self.attack_type)
+
+    
+    def set_mode(self, mode):
+        if "idle" in mode:
+            self.animation_speed = 600
+        elif "walk" in mode:
+            self.animation_speed = 120
+        elif mode == 'thump':
+            self.animation_speed = 70
+        elif mode == 'hurt':
+            self.animation_speed = 150
+        elif mode == 'slash':
+            self.animation_speed = 150
+        
+        if mode != self.mode:
+            self.current_frame = 0
+            self.last_animation_time = pygame.time.get_ticks()
+
+        self.mode = mode
 
 
     def move(self, speed):
@@ -142,16 +175,20 @@ class Enemy(Entity):
 
             total_frames = self.get_num_columns()
 
-            if "thump" in self.mode:
-                if self.current_frame >= total_frames:
-                    self.can_attack = False
-                    self.current_frame = 0
-            else:
-                self.current_frame %= total_frames
+            # 🔒 chegou no fim da animação
+            if self.current_frame >= total_frames:
+                if self.mode == self.attack_type:
+                    self.attacking = False
+                
+                if self.mode == 'hurt' and self.dying:
+                    self.kill()
+                    return
+
+                self.current_frame = 0  # loop normal
 
         self.image = self.get_frame(self.current_frame)
 
-        if not self.vulnerable:
+        if not self.vulnerable and self.health > 0:
             alpha = self.wave_value()
             self.image.set_alpha(alpha)
 
@@ -184,17 +221,31 @@ class Enemy(Entity):
     
 
     def check_death(self):
-        if self.health <= 0:
-            self.kill()
+        if self.health <= 0 and not self.dying:
+            self.dying = True
+            self.attacking = False
+            self.set_mode('hurt')
+            self.direction_row = 0
     
 
-    def hit_reaction(self):
-        if not self.vulnerable:
-            self.direction *= -self.resistance
+    def hit_reaction(self, player):
+        if not self.vulnerable and not self.dying:
+            enemy_vec = pygame.math.Vector2(self.hitbox.center)
+            player_vec = pygame.math.Vector2(player.hitbox.center)
+            direction = (player_vec - enemy_vec).normalize()
+        
+            self.direction = direction * -1
+
+            knockback = self.direction * self.resistance * 2
+
+            self.hitbox.x += knockback.x
+            self.collision('horizontal')
+
+            self.hitbox.y += knockback.y
+            self.collision('vertical')
 
 
     def update(self):
-        self.hit_reaction()
         self.move(self.speed)
         self.animate()
         self.cooldowns()
@@ -202,5 +253,6 @@ class Enemy(Entity):
     
 
     def enemy_update(self, player):
+        self.hit_reaction(player)
         self.get_status(player)
         self.actions(player)

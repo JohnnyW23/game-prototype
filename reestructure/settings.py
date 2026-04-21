@@ -22,56 +22,56 @@ UI_BORDER_COLOR = '#111111'
 TEXT_COLOR = "#eeeeee"
 
 # frames for each of player modes
-HUMAN_FRAMES = {
-    "backslash": 13,
-    "climb": 6,
-    "combat": 2,
-    "emote": 3,
-    "halfslash": 6,
-    "hurt": 6,
-    "idle": 2,
-    "jump": 5,
-    "run": 8,
-    "sit": 1,
-    "slash": 5,
-    "spellcast": 7,
-    "walk": 9,
-    "shoot": 13,
-    "thump": 6
+MODES = {
+    "backslash": {"frames": 13, "animation_speed": 60},
+    "climb": {"frames": 6, "animation_speed": 70},
+    "combat": {"frames": 2, "animation_speed": 300},
+    "emote": {"frames": 3, "animation_speed": 40},
+    "halfslash": {"frames": 6, "animation_speed": 65},
+    "hurt": {"frames": 6, "animation_speed": 150},
+    "idle": {"frames": 2, "animation_speed": 500},
+    "jump": {"frames": 5, "animation_speed": 60},
+    "run": {"frames": 8, "animation_speed": 70},
+    "sit": {"frames": 1, "animation_speed": 1},
+    "slash": {"frames": 5, "animation_speed": 55},
+    "spellcast": {"frames": 7, "animation_speed": {"fireball": 300, "heal": 65}},
+    "walk": {"frames": 9, "animation_speed": 120},
+    "shoot": {"frames": 13, "animation_speed": 55},
+    "thump": {"frames": 6, "animation_speed": 70}
 }
 
 # weapons
 WEAPON_DATA = {
     "brass_sword": {
         "damage": 8,
-        "cooldown": 100,
+        "cooldown": 200,
         "graphic": 'assets/characters/weapons/brass_sword.png'
     },
     "silver_sword": {
-        "damage": 10,
-        "cooldown": 300,
+        "damage": 12,
+        "cooldown": 500,
         "graphic": 'assets/characters/weapons/silver_sword.png'
     },
     "normal_bow": {
         "damage": 5,
-        "cooldown": 300,
+        "cooldown": 400,
         "graphic": 'assets/characters/weapons/normal_bow.png'
     }
 }
 
 # magic
 MAGIC_DATA = {
-    "flame": {
+    "fireball": {
         "strenght": 8,
         "cost": 20,
-        "cooldown": 1500,
-        "graphic": 'assets/characters/magics/flame.png',
+        "cooldown": 5000,
+        "graphic": 'assets/characters/magics/fireball.png',
         "image_frame": 6,
-        "image_layer": 0
+        "image_layer": 3
     },
     "heal": {
         "strenght": 8,
-        "cost": 20,
+        "cost": 15,
         "cooldown": 500,
         "graphic": 'assets/characters/magics/heal.png',
         "image_frame": 3,
@@ -100,17 +100,13 @@ ATTACK_TYPES_DATA = {
         "start": 0,
         "size": None,
         "vector_coordinates": None
-    },
-    "magic": {
-        "start": 0,
-        "size": None,
-        "vector_coordinates": None
     }
 }
 
 # enemy
 ENEMY_DATA = {
     'zombie1': {
+        'spawn_chance': 0.4,
         'health': 100,
         'exp': 10,
         'damage': 10,
@@ -119,11 +115,12 @@ ENEMY_DATA = {
         'graphic': 'assets/enemies/zombie1',
         'speed': 2,
         'resistance': 3,
-        'attack_cooldown': 400,
-        'attack_radius': 40,
+        'attack_cooldown': 1000,
+        'attack_radius': 35,
         'notice_radius': 360
     },
     'zombie2': {
+        'spawn_chance': 0.4,
         'health': 100,
         'exp': 10,
         'damage': 10,
@@ -132,9 +129,23 @@ ENEMY_DATA = {
         'graphic': 'assets/enemies/zombie2',
         'speed': 2,
         'resistance': 3,
-        'attack_cooldown': 400,
-        'attack_radius': 40,
+        'attack_cooldown': 1000,
+        'attack_radius': 35,
         'notice_radius': 360
+    },
+    'zombie_iron_sword': {
+        'spawn_chance': 0.2,
+        'health': 150,
+        'exp': 15,
+        'damage': 15,
+        'attack_type': 'slash',
+        'attack_sound': 'assets/audio/attack/slash.mp3',
+        'graphic': 'assets/enemies/zombie_iron_sword',
+        'speed': 2.5,
+        'resistance': 2.5,
+        'attack_cooldown': 1500,
+        'attack_radius': 40,
+        'notice_radius': 260
     }
 }
 
@@ -173,7 +184,7 @@ STYLE_CONFIG = {
     "tree_top": {
         "tileset": "tree",
         "groups": lambda self: [self.visible_sprites],
-        "z": 1000,
+        "z": 500,
         "type": "tree",
     },
     "tree_base": {
@@ -191,7 +202,7 @@ STYLE_CONFIG = {
     "barrel_top": {
         "tileset": "barrel",
         "groups": lambda self: [self.visible_sprites, self.attackable_sprites],
-        "z": 500,
+        "z": 250,
         "type": "barrel",
     },
     "barrel_base": {

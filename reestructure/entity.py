@@ -1,6 +1,7 @@
 import pygame
 from settings import *
 from math import sin
+from support import get_all_sprites
 
 
 class Entity(pygame.sprite.Sprite):
@@ -8,8 +9,7 @@ class Entity(pygame.sprite.Sprite):
         super().__init__(groups)
 
         # entity sprite loading
-        self.path = path
-        self.get_all_sprites()
+        self.all_sprites = get_all_sprites(path)
 
         # entity animation
         self.animation_speed = 600
@@ -27,22 +27,11 @@ class Entity(pygame.sprite.Sprite):
         self.z_offset = z_offset
     
 
-    def get_all_sprites(self):
-        import os
-
-        sprites = os.listdir(self.path)
-        sprite_dict = {}
-        for sprite in sprites:
-            sprite_dict[sprite[:-4]] = pygame.image.load(f'{self.path}/{sprite}')
-
-        self.all_sprites = sprite_dict
-    
-
     def get_num_columns(self):
         mode = self.mode
         if "_" in mode: key = mode[:mode.find("_")]
         else: key = mode
-        return HUMAN_FRAMES[key]
+        return MODES[key]['frames']
 
 
     def get_frame(self, frame_index):
@@ -97,37 +86,4 @@ class Entity(pygame.sprite.Sprite):
         value = sin(pygame.time.get_ticks())
         if value >= 0: return 255
         else:return 0
-    
-
-    def set_mode(self, mode):
-        if "idle" in mode:
-            self.animation_speed = 600
-        elif mode == "run":
-            self.animation_speed = 70
-        elif "walk" in mode:
-            self.animation_speed = 120
-        elif "combat" in mode:
-            self.animation_speed = 300
-        elif "halfslash" in mode:
-            self.animation_speed = 65
-        elif "backslash" in mode:
-            self.animation_speed = 60
-        elif "slash" in mode:
-            self.animation_speed = 55
-        elif "shoot" in mode:
-            self.animation_speed = 50
-        elif mode == 'spellcast':
-            if self.magic_name == "flame":
-                self.animation_speed = 200
-            elif self.magic_name == "heal":
-                self.animation_speed = 65
-        elif mode == 'thump':
-            self.animation_speed = 70
-        
-        if mode != self.mode:
-            self.current_frame = 0
-            self.last_animation_time = pygame.time.get_ticks()
-
-        self.mode = mode
-
     

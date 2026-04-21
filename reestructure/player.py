@@ -12,11 +12,24 @@ class Player(Entity):
 
         # attacking data
         self.attacking = False
-        self.attack_type = None
-        self.attack_start = 30
-        self.attack_cooldown = 350
+        self.attack_type = 'slash'
         self.combat_mode_cooldown = 2500
-        self.attack_time = 0
+        self.attack_time = {
+            'slash': -400,
+            'halfslash': -200,
+            'backslash': -1500,
+            'shoot': -800,
+            'fireball': -5000,
+            'heal': -500
+        }
+        self.attack_cooldown = {
+            'slash': 400,
+            'halfslash': 200,
+            'backslash': 1500,
+            'shoot': 800,
+            'fireball': 5000,
+            'heal': 500
+        }
 
         # weapon data
         self.create_attack = create_attack
@@ -69,7 +82,7 @@ class Player(Entity):
         self.attack = self.stats['attack']
         self.magic = self.stats['magic']
         self.speed = self.stats['speed']
-        self.exp = 123
+        self.exp = 0
 
         # damage timer
         self.vulnerable = True
@@ -137,21 +150,19 @@ class Player(Entity):
         multiplier = 1
         
         if self.selected_weapon_type == "sword":
-            if keys[pygame.K_j]:
+            if keys[pygame.K_j] and self.can_use('slash', pygame.time.get_ticks()):
                 self.attacking = True
                 self.attack_type = "slash"
-                self.attack_time = pygame.time.get_ticks()
-                self.attack_cooldown = 400
+                self.attack_time[self.attack_type] = pygame.time.get_ticks()
                 self.attack_start = 30
                 self.attack_triggered = True
                 self.set_mode(f"slash_{self.weapon_name}")
                 
             
-            if keys[pygame.K_k]:
+            elif keys[pygame.K_k] and self.can_use('halfslash', pygame.time.get_ticks()):
                 self.attacking = True
                 self.attack_type = "halfslash"
-                self.attack_time = pygame.time.get_ticks()
-                self.attack_cooldown = 600
+                self.attack_time[self.attack_type] = pygame.time.get_ticks()
                 self.attack_start = 30
                 self.attack_triggered = True
                 self.set_mode(f"halfslash_{self.weapon_name}")
@@ -159,11 +170,10 @@ class Player(Entity):
                 multiplier -= 0.2
 
 
-            if keys[pygame.K_l]:
+            elif keys[pygame.K_l] and self.can_use('backslash', pygame.time.get_ticks()):
                 self.attacking = True
                 self.attack_type = "backslash"
-                self.attack_time = pygame.time.get_ticks()
-                self.attack_cooldown = 1000
+                self.attack_time[self.attack_type] = pygame.time.get_ticks()
                 self.attack_start = 30
                 self.attack_triggered = True
                 self.set_mode(f"backslash_{self.weapon_name}")
@@ -171,22 +181,21 @@ class Player(Entity):
                 multiplier += 0.2
 
         
-        if self.selected_weapon_type == "bow":
+        elif self.selected_weapon_type == "bow" and self.can_use('shoot', pygame.time.get_ticks()):
             if keys[pygame.K_j] or keys[pygame.K_k] or keys[pygame.K_l]:
                 self.attacking = True
                 self.attack_type = "shoot"
-                self.attack_time = pygame.time.get_ticks()
-                self.attack_cooldown = 800
+                self.attack_time[self.attack_type] = pygame.time.get_ticks()
                 self.attack_start = 0
                 self.attack_triggered = True
                 self.set_mode(f"shoot_{self.weapon_name}")
         
-
-        if keys[pygame.K_i]:
+        self.damage_point = WEAPON_DATA[self.weapon_name]['damage'] * multiplier
+        
+        if keys[pygame.K_i] and self.can_use(self.magic_name, pygame.time.get_ticks()):
             self.attacking = True
-            self.attack_type = "magic"
-            self.attack_time = pygame.time.get_ticks()
-            self.attack_cooldown = MAGIC_DATA[self.magic_name]["cooldown"]
+            self.attack_type = self.magic_name
+            self.attack_time[self.attack_type] = pygame.time.get_ticks()
             self.attack_start = 0
             self.attack_triggered = True
             self.set_mode('spellcast')
@@ -196,7 +205,7 @@ class Player(Entity):
 
             self.create_magic(style, strenght, cost)
         
-        self.damage_point = MAGIC_DATA[self.magic_name]['strenght']
+            self.spell_point = MAGIC_DATA[self.magic_name]['strenght']
 
 
         if keys[pygame.K_h] and self.can_switch_weapon:
@@ -231,6 +240,20 @@ class Player(Entity):
             self.magic_name = list(MAGIC_DATA.keys())[self.magic_index]
     
 
+    def can_use(self, attack_type, current_time):
+        if attack_type in MAGIC_DATA:
+            cd = MAGIC_DATA[attack_type]['cooldown']
+            if attack_type == 'heal':
+                max_health = self.stats['health']
+                if self.energy < MAGIC_DATA['heal']['cost'] or self.health == max_health:
+                    return False
+                
+        else:
+            cd = self.attack_cooldown[attack_type] + WEAPON_DATA[self.weapon_name]['cooldown']
+
+        return current_time - self.attack_time[attack_type] >= cd
+
+
     def move(self, speed):
         if self.direction.magnitude() != 0:
             self.direction = self.direction.normalize()
@@ -245,29 +268,41 @@ class Player(Entity):
         self.dmg_hitbox.right = self.hitbox.right
     
 
+    def set_mode(self, mode):
+        if "_" in mode: key = mode[:mode.find("_")]
+        else: key = mode
+
+        if key == 'spellcast':
+            self.animation_speed = MODES[key]['animation_speed'][self.magic_name]
+            
+        else:
+            self.animation_speed = MODES[key]['animation_speed']
+
+        if mode != self.mode:
+            self.current_frame = 0
+            self.last_animation_time = pygame.time.get_ticks()
+
+        self.mode = mode
+    
+
     def cooldowns(self):
         current_time = pygame.time.get_ticks()
         
         # ===== COOLDOWN DE ATAQUE =====
-        if self.attacking:
+        if self.attacking and self.attack_type not in ['shoot'] + list(MAGIC_DATA.keys()):
             attack_data =  ATTACK_TYPES_DATA[self.attack_type]
             attack_start = attack_data["start"]
 
-            if current_time - self.attack_time >= attack_start and self.attack_triggered and self.attack_type not in ['shoot', 'magic']:
+            if current_time - self.attack_time[self.attack_type] >= attack_start and self.attack_triggered:
                 self.create_attack(
                     attack_data["size"],
                     attack_data["vector_coordinates"]
                 )
                 self.attack_triggered = False
-
-            if current_time - self.attack_time >= self.attack_cooldown + WEAPON_DATA[self.weapon_name]['cooldown']:
-                self.attacking = False
-                self.destroy_attack()
-                self.last_attack_time = current_time
-                self.set_mode(f"combat_{self.weapon_name}")
+            
 
         if self.mode == f"combat_{self.weapon_name}":
-            if current_time - self.attack_time >= self.combat_mode_cooldown:
+            if current_time - self.attack_time[self.attack_type] >= self.combat_mode_cooldown:
                 self.set_mode(f"idle_{self.weapon_name}")
 
         if not self.can_switch_weapon:
@@ -323,9 +358,10 @@ class Player(Entity):
 
             total_frames = self.get_num_columns()
 
-            if "slash" in self.mode or "shoot" in self.mode or "spellcast" in self.mode:
+            if self.attack_type in self.mode or "spellcast" in self.mode:
                 if self.current_frame >= total_frames:
                     self.current_frame = 0
+                    self.attacking = False
                     self.destroy_attack()
                     # quando terminar o ataque, entra em Combat Idle
                     self.set_mode(f"combat_{self.weapon_name}")

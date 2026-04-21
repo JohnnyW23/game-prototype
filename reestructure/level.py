@@ -6,6 +6,8 @@ from player import Player
 from enemy import Enemy
 from hitbox import Hitbox
 from ui import UI
+from particles import AnimationPlayer
+from magic import MagicPlayer
 
 
 class Level:
@@ -28,6 +30,10 @@ class Level:
 
         # user interface
         self.ui = UI()
+
+        # particles
+        self.animation_player = AnimationPlayer()
+        self.magic_player = MagicPlayer(self.animation_player)
     
 
     def create_floor_map(self):
@@ -368,15 +374,28 @@ class Level:
             self.create_magic
         )
 
+        names = list(ENEMY_DATA.keys())
+        chances_dict = {name: ENEMY_DATA[name]['spawn_chance'] for name in names}
+
+        def escolher_chave(dicionario):
+            total = sum(dicionario.values())
+            r = random.uniform(0, total)
+            acumulado = 0
+            for chave, chance in dicionario.items():
+                acumulado += chance
+                if r <= acumulado:
+                    return chave
+
         for y in range(len(self.building_grid)):
             for x in range(len(self.building_grid[0])):
                 if 25 < y < 51 or 25 < x < 51:
                     continue
                 if random.random() <= 0.01 and not self.building_grid[y][x]:
-                    name = random.choice(list(ENEMY_DATA.keys()))
                     enemy_x = x * TILESIZE
                     enemy_y = y * TILESIZE
                     id = uuid.uuid4()
+
+                    name = escolher_chave(chances_dict)
 
                     self.enemy = Enemy(
                         name,
@@ -449,9 +468,11 @@ class Level:
 
 
     def create_magic(self, style, strenght, cost):
-        print(style)
-        print(strenght)
-        print(cost)
+        if style == 'heal':
+            self.magic_player.heal(self.player, strenght, cost, [self.visible_sprites])
+
+        if style == 'fireball':
+            pass
 
 
     def destroy_attack(self):
@@ -484,6 +505,8 @@ class Level:
 
                         for sprite in self.attackable_sprites.copy():
                             if getattr(sprite, "id", None) == target_id:
+                                pos = target_sprite.rect.center
+                                self.animation_player.create_particles(pos, 50, 0, 'dust', [self.visible_sprites])
                                 sprite.kill()
                     
                     else:

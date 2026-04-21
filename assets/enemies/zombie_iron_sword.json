@@ -1,0 +1,453 @@
+{
+  "version": 2,
+  "bodyType": "male",
+  "selections": {
+    "head": {
+      "itemId": "heads_zombie",
+      "subId": null,
+      "variant": "",
+      "recolor": "zombie",
+      "name": "Zombie (zombie)"
+    },
+    "expression": {
+      "itemId": "face_neutral",
+      "subId": null,
+      "variant": "",
+      "recolor": "zombie",
+      "name": "Neutral (zombie)"
+    },
+    "body": {
+      "itemId": "body",
+      "subId": null,
+      "variant": "",
+      "recolor": "zombie",
+      "name": "Body Color (zombie)"
+    },
+    "wound_brain": {
+      "itemId": "wound_brain",
+      "subId": null,
+      "variant": "red",
+      "recolor": "",
+      "name": "Brain (red)"
+    },
+    "legs": {
+      "itemId": "legs_cuffed",
+      "subId": null,
+      "variant": "",
+      "recolor": "gray",
+      "name": "Cuffed Pants (gray)"
+    },
+    "clothes": {
+      "itemId": "torso_clothes_longsleeve",
+      "subId": null,
+      "variant": "",
+      "recolor": "gray",
+      "name": "Longsleeve (gray)"
+    },
+    "weapon": {
+      "itemId": "weapon_sword_arming",
+      "subId": null,
+      "variant": "iron",
+      "recolor": "",
+      "name": "Arming Sword (iron)"
+    }
+  },
+  "selectedAnimation": "slash_128",
+  "showTransparencyGrid": true,
+  "applyTransparencyMask": false,
+  "matchBodyColorEnabled": true,
+  "compactDisplay": false,
+  "enabledLicenses": {
+    "CC0": true,
+    "CC-BY-SA": true,
+    "CC-BY": true,
+    "OGA-BY": true,
+    "GPL": true
+  },
+  "enabledAnimations": {
+    "spellcast": false,
+    "thrust": false,
+    "walk": false,
+    "slash": false,
+    "shoot": false,
+    "hurt": false,
+    "climb": false,
+    "idle": true,
+    "jump": false,
+    "sit": false,
+    "emote": false,
+    "run": false,
+    "watering": false,
+    "combat": false,
+    "1h_slash": false,
+    "1h_backslash": false,
+    "1h_halfslash": false
+  },
+  "url": "https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator/#sex=male&head=Zombie_zombie&expression=Neutral_zombie&body=Body_Color_zombie&wound_brain=Brain_red&legs=Cuffed_Pants_gray&clothes=Longsleeve_gray&weapon=Arming_Sword_iron",
+  "layers": [
+    {
+      "itemId": "weapon_sword_arming",
+      "name": "Arming Sword (iron)",
+      "variant": "iron",
+      "recolors": null,
+      "zPos": 9,
+      "layerNum": 2,
+      "yPos": 512,
+      "isCustom": false,
+      "needsRecolor": false,
+      "fileName": "weapon/sword/arming/universal/bg/walk/iron.png",
+      "supportedAnimations": [
+        "walk",
+        "hurt",
+        "idle",
+        "combat_idle"
+      ]
+    },
+    {
+      "itemId": "body",
+      "name": "Body Color (zombie)",
+      "variant": "",
+      "recolors": {
+        "body": "zombie"
+      },
+      "zPos": 10,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "needsRecolor": false,
+      "fileName": "body/bodies/male/spellcast.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt",
+        "climb",
+        "idle",
+        "jump",
+        "sit",
+        "emote",
+        "run",
+        "combat_idle",
+        "backslash",
+        "halfslash"
+      ]
+    },
+    {
+      "itemId": "legs_cuffed",
+      "name": "Cuffed Pants (gray)",
+      "variant": "",
+      "recolors": {
+        "legs": "gray"
+      },
+      "zPos": 20,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "needsRecolor": false,
+      "fileName": "legs/cuffed/male/spellcast.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt",
+        "climb",
+        "idle",
+        "jump",
+        "sit",
+        "emote",
+        "run",
+        "combat_idle",
+        "backslash",
+        "halfslash"
+      ]
+    },
+    {
+      "itemId": "torso_clothes_longsleeve",
+      "name": "Longsleeve (gray)",
+      "variant": "",
+      "recolors": {
+        "clothes": "gray"
+      },
+      "zPos": 35,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "needsRecolor": false,
+      "fileName": "torso/clothes/longsleeve/longsleeve/male/spellcast.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt",
+        "climb",
+        "idle",
+        "jump",
+        "sit",
+        "emote",
+        "run",
+        "combat_idle",
+        "backslash",
+        "halfslash"
+      ]
+    },
+    {
+      "itemId": "heads_zombie",
+      "name": "Zombie (zombie)",
+      "variant": "",
+      "recolors": {
+        "head": "zombie"
+      },
+      "zPos": 100,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "needsRecolor": false,
+      "fileName": "head/heads/zombie/adult/spellcast.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt",
+        "climb",
+        "idle",
+        "jump",
+        "sit",
+        "emote",
+        "run",
+        "combat_idle",
+        "backslash",
+        "halfslash"
+      ]
+    },
+    {
+      "itemId": "face_neutral",
+      "name": "Neutral (zombie)",
+      "variant": "",
+      "recolors": {
+        "expression": "zombie"
+      },
+      "zPos": 101,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "needsRecolor": false,
+      "fileName": "head/faces/${head}/neutral/spellcast.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "idle",
+        "jump",
+        "sit",
+        "emote",
+        "run",
+        "combat_idle",
+        "backslash",
+        "halfslash"
+      ]
+    },
+    {
+      "itemId": "wound_brain",
+      "name": "Brain (red)",
+      "variant": "red",
+      "recolors": null,
+      "zPos": 115,
+      "layerNum": 1,
+      "yPos": 0,
+      "isCustom": false,
+      "needsRecolor": false,
+      "fileName": "body/wound/brain/spellcast/red.png",
+      "supportedAnimations": [
+        "spellcast",
+        "thrust",
+        "walk",
+        "slash",
+        "shoot",
+        "hurt",
+        "climb",
+        "idle",
+        "jump",
+        "sit",
+        "emote",
+        "run",
+        "combat_idle",
+        "backslash",
+        "halfslash"
+      ]
+    },
+    {
+      "itemId": "weapon_sword_arming",
+      "name": "Arming Sword (iron)",
+      "variant": "iron",
+      "recolors": null,
+      "zPos": 140,
+      "layerNum": 1,
+      "yPos": 512,
+      "isCustom": false,
+      "needsRecolor": false,
+      "fileName": "weapon/sword/arming/universal/fg/walk/iron.png",
+      "supportedAnimations": [
+        "walk",
+        "hurt",
+        "idle",
+        "combat_idle"
+      ]
+    }
+  ],
+  "credits": [
+    {
+      "fileName": "head/heads/zombie/adult/slash_128.png",
+      "file": "head/heads/zombie",
+      "notes": "",
+      "authors": [
+        "bluecarrot16",
+        "Benjamin K. Smith (BenCreating)",
+        "Sander Frenken (castelonia)",
+        "Stephen Challener (Redshrike)"
+      ],
+      "licenses": [
+        "CC-BY-SA 3.0",
+        "GPL 3.0"
+      ],
+      "urls": [
+        "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+        "https://opengameart.org/content/lpc-zombie",
+        "https://opengameart.org/content/lpc-character-bases"
+      ]
+    },
+    {
+      "fileName": "head/faces/${head}/neutral/slash_128.png",
+      "file": "head/faces",
+      "notes": "Original by Redshrike, Expressions by ElizaWy, mapped to all frames by JaidynReiman",
+      "authors": [
+        "JaidynReiman",
+        "ElizaWy",
+        "Stephen Challener (Redshrike)"
+      ],
+      "licenses": [
+        "OGA-BY 3.0"
+      ],
+      "urls": [
+        "https://github.com/ElizaWy/LPC/tree/main/Characters/Head",
+        "https://opengameart.org/content/ulpc-expanded-expressions"
+      ]
+    },
+    {
+      "fileName": "body/bodies/male/slash_128.png",
+      "file": "body/bodies/male",
+      "notes": "see details at https://opengameart.org/content/lpc-character-bases; 'Thick' Male Revised Run/Climb by JaidynReiman (based on ElizaWy's LPC Revised)",
+      "authors": [
+        "bluecarrot16",
+        "JaidynReiman",
+        "Benjamin K. Smith (BenCreating)",
+        "Evert",
+        "Eliza Wyatt (ElizaWy)",
+        "TheraHedwig",
+        "MuffinElZangano",
+        "Durrani",
+        "Johannes Sjölund (wulax)",
+        "Stephen Challener (Redshrike)"
+      ],
+      "licenses": [
+        "OGA-BY 3.0",
+        "CC-BY-SA 3.0",
+        "GPL 3.0"
+      ],
+      "urls": [
+        "https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles",
+        "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+        "https://opengameart.org/content/lpc-male-jumping-animation-by-durrani",
+        "https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle",
+        "https://opengameart.org/content/lpc-revised-character-basics",
+        "https://opengameart.org/content/lpc-be-seated",
+        "https://opengameart.org/content/lpc-runcycle-for-male-muscular-and-pregnant-character-bases-with-modular-heads",
+        "https://opengameart.org/content/lpc-jump-expanded",
+        "https://opengameart.org/content/lpc-character-bases"
+      ]
+    },
+    {
+      "fileName": "body/wound/brain/slash_128/red.png",
+      "file": "body/wound/brain",
+      "notes": "",
+      "authors": [
+        "Benjamin K. Smith (BenCreating)",
+        "Sander Frenken (castelonia)"
+      ],
+      "licenses": [
+        "CC-BY-SA 3.0",
+        "GPL 3.0"
+      ],
+      "urls": [
+        "https://opengameart.org/content/lpc-zombie"
+      ]
+    },
+    {
+      "fileName": "legs/cuffed/male/slash_128.png",
+      "file": "legs/cuffed/male",
+      "notes": "Original bases by Redshrike, thrust/shoot bases by Wulax, original overalls by ElizaWy, base animations adapted from v3 overalls by bluecarrot16, pants by JaidynReiman",
+      "authors": [
+        "JaidynReiman",
+        "ElizaWy",
+        "Bluecarrot16",
+        "Johannes Sjölund (wulax)",
+        "Stephen Challener (Redshrike)"
+      ],
+      "licenses": [
+        "OGA-BY 3.0",
+        "GPL 3.0"
+      ],
+      "urls": [
+        "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+        "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+        "https://opengameart.org/content/lpc-expanded-pants"
+      ]
+    },
+    {
+      "fileName": "torso/clothes/longsleeve/longsleeve/male/slash_128.png",
+      "file": "torso/clothes/longsleeve/longsleeve/male",
+      "notes": "original by wulax; tweaks and further recolors by bluecarrot16; cleanup and climb/jump/run/sit/emote/revised combat adapted from LPC Revised by JaidynReiman",
+      "authors": [
+        "JaidynReiman",
+        "Johannes Sjölund (wulax)"
+      ],
+      "licenses": [
+        "OGA-BY 3.0",
+        "CC-BY-SA 3.0",
+        "GPL 3.0"
+      ],
+      "urls": [
+        "https://opengameart.org/content/lpc-medieval-fantasy-character-sprites",
+        "http://opengameart.org/content/lpc-clothing-updates",
+        "https://opengameart.org/content/lpc-revised-character-basics",
+        "https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing",
+        "https://opengameart.org/content/lpc-expanded-sit-run-jump-more",
+        "https://opengameart.org/content/lpc-expanded-simple-shirts"
+      ]
+    },
+    {
+      "fileName": "weapon/sword/arming/universal/fg/slash_128/iron.png",
+      "file": "weapon/sword/arming",
+      "notes": "",
+      "authors": [
+        "ElizaWy; walk and down by JaidynReiman"
+      ],
+      "licenses": [
+        "OGA-BY 3.0"
+      ],
+      "urls": [
+        "https://github.com/ElizaWy/LPC/tree/main/Characters/Props/Sword%2001%20-%20Arming%20Sword",
+        "https://opengameart.org/content/lpc-expanded-sit-run-jump-more"
+      ]
+    }
+  ]
+}

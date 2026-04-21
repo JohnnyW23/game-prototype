@@ -71,6 +71,7 @@ class UI:
         )
         magic_surf = pygame.image.load(MAGIC_DATA[magic_name]['graphic'])
         frame = magic_surf.subsurface(sprite_rect)
+        frame = pygame.transform.scale(frame, (56, 56))
         magic_rect = frame.get_rect(center = bg_rect.center)
 
         self.display_surface.blit(frame, magic_rect)
