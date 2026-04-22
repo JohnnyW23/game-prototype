@@ -9,7 +9,8 @@ class Tile(pygame.sprite.Sprite):
         sprite_type,
         id=None,
         surface=pygame.Surface((TILESIZE, TILESIZE)),
-        z_offset=0
+        z_offset=0,
+        base_y=None
     ):
         super().__init__(groups)
         self.sprite_type = sprite_type
@@ -20,6 +21,8 @@ class Tile(pygame.sprite.Sprite):
         self.hitbox = self.rect.inflate(0, -10)
 
         self.z_offset = z_offset
+
+        self.base_y = base_y if base_y is not None else self.rect.centery
 
 
     def hitbox_debug(self, offset):

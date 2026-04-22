@@ -34,7 +34,7 @@ MODES = {
     "run": {"frames": 8, "animation_speed": 70},
     "sit": {"frames": 1, "animation_speed": 1},
     "slash": {"frames": 5, "animation_speed": 55},
-    "spellcast": {"frames": 7, "animation_speed": {"fireball": 300, "heal": 65}},
+    "spellcast": {"frames": 7, "animation_speed": {"flame": 300, "heal": 65}},
     "walk": {"frames": 9, "animation_speed": 120},
     "shoot": {"frames": 13, "animation_speed": 55},
     "thump": {"frames": 6, "animation_speed": 70}
@@ -61,18 +61,20 @@ WEAPON_DATA = {
 
 # magic
 MAGIC_DATA = {
-    "fireball": {
-        "strenght": 8,
+    "flame": {
+        "strenght":10,
         "cost": 20,
-        "cooldown": 5000,
-        "graphic": 'assets/characters/magics/fireball.png',
+        "cooldown": 12000,
+        "start_cooldown": 1800,
+        "graphic": 'assets/characters/magics/flame.png',
         "image_frame": 6,
-        "image_layer": 3
+        "image_layer": 0
     },
     "heal": {
-        "strenght": 8,
+        "strenght": 20,
         "cost": 15,
         "cooldown": 500,
+        "start_cooldown": 0,
         "graphic": 'assets/characters/magics/heal.png',
         "image_frame": 3,
         "image_layer": 3
@@ -150,7 +152,7 @@ ENEMY_DATA = {
 }
 
 # map tiles settings
-STYLE_CONFIG = {
+MAP_FLOOR_CONFIG = {
     "dirt": {
         "tileset": "dirt",
         "groups": lambda self: [self.visible_sprites],
@@ -162,59 +164,5 @@ STYLE_CONFIG = {
         "groups": lambda self: [self.visible_sprites],
         "z": -1000,
         "type": "floor",
-    },
-    "house_top": {
-        "tileset": "house",
-        "groups": lambda self: [self.visible_sprites],
-        "z": 1000,
-        "type": "house",
-    },
-    "house_base": {
-        "tileset": "house",
-        "groups": lambda self: [self.visible_sprites, self.obstacles_sprites],
-        "z": 0,
-        "type": "house",
-    },
-    "house_bottom": {
-        "tileset": "house",
-        "groups": lambda self: [self.visible_sprites],
-        "z": -1000,
-        "type": "house",
-    },
-    "tree_top": {
-        "tileset": "tree",
-        "groups": lambda self: [self.visible_sprites],
-        "z": 500,
-        "type": "tree",
-    },
-    "tree_base": {
-        "tileset": "tree",
-        "groups": lambda self: [self.visible_sprites, self.obstacles_sprites],
-        "z": 0,
-        "type": "tree",
-    },
-    "tree_bottom": {
-        "tileset": "tree",
-        "groups": lambda self: [self.visible_sprites],
-        "z": -1000,
-        "type": "tree",
-    },
-    "barrel_top": {
-        "tileset": "barrel",
-        "groups": lambda self: [self.visible_sprites, self.attackable_sprites],
-        "z": 250,
-        "type": "barrel",
-    },
-    "barrel_base": {
-        "tileset": "barrel",
-        "groups": lambda self: [self.visible_sprites, self.obstacles_sprites, self.attackable_sprites],
-        "z": 0,
-        "type": "barrel",
-    },
-    "barrel_bottom": {
-        "tileset": "barrel",
-        "groups": lambda self: [self.visible_sprites, self.attackable_sprites],
-        "z": -1000,
-        "type": "barrel",
     }
 }

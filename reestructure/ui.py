@@ -13,7 +13,7 @@ class UI:
 
 
     def show_bar(self, current_amount, max_amount, bg_rect, color):
-        radius = 10
+        radius = 1
         # draw bg
         pygame.draw.rect(self.display_surface, UI_BG_COLOR, bg_rect, border_radius=radius)
 
@@ -29,13 +29,14 @@ class UI:
 
 
     def show_exp(self, exp):
+        radius = 2
         exp_font = pygame.font.Font(UI_FONT, 14)
         text_surf = exp_font.render(f'{str(int(exp))} XP', False, TEXT_COLOR)
         text_rect = text_surf.get_rect(topleft = (13, 68))
 
-        pygame.draw.rect(self.display_surface, UI_BG_COLOR, text_rect.inflate(10, 10), border_radius = 10)
+        pygame.draw.rect(self.display_surface, UI_BG_COLOR, text_rect.inflate(10, 10), border_radius = radius)
         self.display_surface.blit(text_surf, text_rect)
-        pygame.draw.rect(self.display_surface, UI_BORDER_COLOR, text_rect.inflate(10, 10), 1, border_radius = 10)
+        pygame.draw.rect(self.display_surface, UI_BORDER_COLOR, text_rect.inflate(10, 10), 1, border_radius = radius)
     
 
     def selection_box(self, left, has_switched):

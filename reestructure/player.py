@@ -19,7 +19,7 @@ class Player(Entity):
             'halfslash': -200,
             'backslash': -1500,
             'shoot': -800,
-            'fireball': -5000,
+            'flame': -12000,
             'heal': -500
         }
         self.attack_cooldown = {
@@ -27,7 +27,7 @@ class Player(Entity):
             'halfslash': 200,
             'backslash': 1500,
             'shoot': 800,
-            'fireball': 5000,
+            'flame': 5000,
             'heal': 500
         }
 
@@ -51,6 +51,7 @@ class Player(Entity):
         self.magic_name = list(MAGIC_DATA.keys())[self.magic_index]
         self.can_switch_magic = True
         self.magic_switch_time = None
+        self.magic_triggered = False
 
         # player mode
         self.mode = f"idle_{self.weapon_name}"
@@ -180,7 +181,9 @@ class Player(Entity):
 
                 multiplier += 0.2
 
-        
+
+            self.damage_point = WEAPON_DATA[self.weapon_name]['damage'] * multiplier
+
         elif self.selected_weapon_type == "bow" and self.can_use('shoot', pygame.time.get_ticks()):
             if keys[pygame.K_j] or keys[pygame.K_k] or keys[pygame.K_l]:
                 self.attacking = True
@@ -190,7 +193,7 @@ class Player(Entity):
                 self.attack_triggered = True
                 self.set_mode(f"shoot_{self.weapon_name}")
         
-        self.damage_point = WEAPON_DATA[self.weapon_name]['damage'] * multiplier
+            self.damage_point = WEAPON_DATA[self.weapon_name]['damage'] * multiplier
         
         if keys[pygame.K_i] and self.can_use(self.magic_name, pygame.time.get_ticks()):
             self.attacking = True
@@ -199,14 +202,10 @@ class Player(Entity):
             self.attack_start = 0
             self.attack_triggered = True
             self.set_mode('spellcast')
-            style = list(MAGIC_DATA.keys())[self.magic_index]
-            strenght = MAGIC_DATA[style]['strenght'] + self.stats['magic']
-            cost = MAGIC_DATA[style]['cost']
 
-            self.create_magic(style, strenght, cost)
+            self.magic_triggered = True
         
             self.spell_point = MAGIC_DATA[self.magic_name]['strenght']
-
 
         if keys[pygame.K_h] and self.can_switch_weapon:
             self.can_switch_weapon = False
@@ -246,6 +245,9 @@ class Player(Entity):
             if attack_type == 'heal':
                 max_health = self.stats['health']
                 if self.energy < MAGIC_DATA['heal']['cost'] or self.health == max_health:
+                    return False
+            elif attack_type == 'flame':
+                if self.energy < MAGIC_DATA['flame']['cost']:
                     return False
                 
         else:
@@ -299,6 +301,14 @@ class Player(Entity):
                     attack_data["vector_coordinates"]
                 )
                 self.attack_triggered = False
+        
+        if self.magic_triggered:
+            if current_time - self.attack_time[self.attack_type] >= MAGIC_DATA[self.magic_name]['start_cooldown']:
+                style = list(MAGIC_DATA.keys())[self.magic_index]
+                strenght = MAGIC_DATA[style]['strenght'] + self.stats['magic']
+                cost = MAGIC_DATA[style]['cost']
+                self.create_magic(style, strenght, cost)
+                self.magic_triggered = False
             
 
         if self.mode == f"combat_{self.weapon_name}":
@@ -313,7 +323,6 @@ class Player(Entity):
             if current_time - self.magic_switch_time >= self.switch_duration_cooldown:
                 self.can_switch_magic = True
         
-
         if not self.vulnerable:
             if current_time - self.hurt_time >= self.invulnerability_duration:
                 self.vulnerable = True
@@ -383,10 +392,24 @@ class Player(Entity):
         weapon_damage = ceil(self.damage_point)
 
         return base_damage + weapon_damage
+    
+
+    def get_full_magic_damage(self):
+        from math import ceil
+        base_damage = self.magic
+        spell_damage = ceil(self.spell_point)
+
+        return base_damage + spell_damage
+
+
+    def energy_recovery(self):
+        if self.energy < self.stats['energy']:
+            self.energy += 0.01 * self.stats['magic']
 
 
     def update(self):
         self.cooldowns()
         self.input()
-        self.move(self.speed)
         self.animate()
+        self.move(self.speed)
+        self.energy_recovery()

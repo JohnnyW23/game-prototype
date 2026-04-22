@@ -181,6 +181,19 @@ class Level:
         return True
 
 
+    def escolher_modelo(self, models_dict):
+        import random
+
+        total = sum(m["chance"] for m in models_dict.values())
+        r = random.uniform(0, total)
+
+        acumulado = 0
+        for nome, model in models_dict.items():
+            acumulado += model["chance"]
+            if r <= acumulado:
+                return nome, model
+
+
     def generate_buildings(self):
         import random
         from buildings import buildings
@@ -191,58 +204,78 @@ class Level:
         map_w = len(dirt[0])
 
         # cria layers para todos os tipos de building
-        for building in buildings.keys():
-            overlayed = f'{building}_top'
-            outside = f'{building}_base'
-            ornaments = f'{building}_bottom'
+        for building_data in buildings.values():
+            for model_name, model in building_data.items():
+                if model_name == "chance":
+                    continue
 
-            if overlayed not in self.map_layers:
-                self.map_layers[overlayed] = [[-1 for _ in range(map_w)] for _ in range(map_h)]
-            if outside not in self.map_layers:
-                self.map_layers[outside] = [[-1 for _ in range(map_w)] for _ in range(map_h)]
-            if ornaments not in self.map_layers:
-                self.map_layers[ornaments] = [[-1 for _ in range(map_w)] for _ in range(map_h)]
+                for part_name in model.keys():
+                    if part_name == "chance":
+                        continue
+
+                    if part_name not in self.map_layers:
+                        self.map_layers[part_name] = [
+                            [-1 for _ in range(map_w)] for _ in range(map_h)
+                        ]
 
         # percorre o mapa verticalmente
-        for y in range(map_h):
-            for x in range(map_w):
-                # sorteia qual tipo de building tentar
-                for building, building_data in buildings.items():
+        # percorre por tipo de building (PRIORIDADE)
+        for building, building_data in buildings.items():
+
+            for y in range(map_h):
+                for x in range(map_w):
+                    # sorteia modelo
+                    # 1. chance do building
                     if random.random() > building_data["chance"]:
                         continue
 
-                    overlayed = f'{building}_top'
-                    outside = f'{building}_base'
-                    ornaments = f'{building}_bottom'
+                    # 2. pega apenas modelos
+                    models = {
+                        name: data
+                        for name, data in building_data.items()
+                        if name != "chance"
+                    }
 
-                    top_layer = self.map_layers[overlayed]
-                    base_layer = self.map_layers[outside]
-                    ornament_layer = self.map_layers[ornaments]
+                    # 3. escolhe modelo ponderado
+                    model_name, model = self.escolher_modelo(models)
 
-                    # sorteia modelo
-                    model_name = random.choice([m for m in building_data.keys() if m != "chance"])
-                    model = building_data[model_name]
-                    if random.random() > model["chance"]:
-                        continue
+                    parts = {
+                        name: data for name, data in model.items()
+                        if name != "chance"
+                    }
 
-                    base_tiles = model[outside]
-                    top_tiles = model[overlayed]
-                    ornament_tiles = model[ornaments]
+                    base_parts = {
+                        name: data for name, data in parts.items()
+                        if name.endswith("_base")
+                    }
 
-                    h = len(base_tiles)
-                    w = len(base_tiles[0])
+                    reference = next((p["grid"] for p in base_parts.values() if "grid" in p), None)
+
+                    if not reference:
+                        continue  # building inválido sem base
+
+                    h = len(reference)
+                    w = len(reference[0])
 
                     if y + h > map_h or x + w > map_w:
                         continue
 
                     # valida posição
                     valid = True
-                    for yy in range(h):
-                        for xx in range(w):
-                            if base_tiles[yy][xx] != -1:
-                                if not self.can_place_building(x + xx, y + yy, 1, 1):
-                                    valid = False
-                                    break
+
+                    for part_name, part in base_parts.items():
+                        grid = part.get("grid")
+                        if not grid:
+                            continue
+
+                        for yy in range(len(grid)):
+                            for xx in range(len(grid[0])):
+                                if grid[yy][xx] != -1:
+                                    if not self.can_place_building(x + xx, y + yy, 1, 1):
+                                        valid = False
+                                        break
+                            if not valid:
+                                break
                         if not valid:
                             break
 
@@ -251,36 +284,32 @@ class Level:
 
                     building_id = uuid.uuid4()
 
-                    # aplica base
-                    for yy in range(h):
-                        for xx in range(w):
-                            tile = base_tiles[yy][xx]
-                            if tile != -1:
-                                self.building_grid[y + yy][x + xx] = True
-                                if base_layer[y + yy][x + xx] == -1:
-                                    base_layer[y + yy][x + xx] = []
+                    for part_name, part_data in parts.items():
+                        grid = part_data.get("grid")
+                        if not grid:
+                            continue
 
-                                base_layer[y + yy][x + xx].append((tile, building_id))
+                        layer = self.map_layers[part_name]
 
-                    # aplica overlay
-                    for yy in range(len(top_tiles)):
-                        for xx in range(len(top_tiles[0])):
-                            tile = top_tiles[yy][xx]
-                            if tile != -1:
-                                if top_layer[y + yy][x + xx] == -1:
-                                    top_layer[y + yy][x + xx] = []
+                        tileset_key = part_name.split("_")[0]  # prefixo
 
-                                top_layer[y + yy][x + xx].append((tile, building_id))
+                        for yy in range(len(grid)):
+                            for xx in range(len(grid[0])):
+                                tile = grid[yy][xx]
 
-                    # aplica ornamentos
-                    for yy in range(len(ornament_tiles)):
-                        for xx in range(len(ornament_tiles[0])):
-                            tile = ornament_tiles[yy][xx]
-                            if tile != -1:
-                                if ornament_layer[y + yy][x + xx] == -1:
-                                    ornament_layer[y + yy][x + xx] = []
+                                if tile == -1:
+                                    continue
 
-                                ornament_layer[y + yy][x + xx].append((tile, building_id))
+                                # marca colisão se necessário
+                                if part_name.endswith("_base"):
+                                    self.building_grid[y + yy][x + xx] = True
+
+                                if layer[y + yy][x + xx] == -1:
+                                    layer[y + yy][x + xx] = []
+
+                                layer[y + yy][x + xx].append(
+                                    (tileset_key, tile, building_id, part_data)
+                                )
 
     
     def create_map(self):
@@ -292,7 +321,8 @@ class Level:
             "grass": self.slice_tiles("map_assets/tiles/grass.png"),
             "house": self.slice_tiles("map_assets/tiles/house.png"),
             "tree": self.slice_tiles("map_assets/tiles/tree.png"),
-            "barrel": self.slice_tiles("map_assets/tiles/barrel.png")
+            "barrel": self.slice_tiles("map_assets/tiles/barrel.png"),
+            "victorian-market": self.slice_tiles("map_assets/victorian/victorian-market.png")
         }
 
         self.create_floor_map()
@@ -316,11 +346,12 @@ class Level:
             "dirt": self.map_layers["dirt"],
             "grass": self.map_layers["grass"]
         }
-        sufixes = ["_top", "_base", "_bottom"]
-        objects = ["house", "tree", "barrel"]
-        for object in objects:
-            for sufix in sufixes:
-                layouts[f'{object}{sufix}'] = self.map_layers[f'{object}{sufix}']
+
+
+        for layer_name, layer in self.map_layers.items():
+            if layer_name not in layouts:
+                layouts[layer_name] = layer
+
         
         for style, layout in layouts.items():
             if style == "boundary":
@@ -332,14 +363,7 @@ class Level:
                             Tile((x - 32, y - 32), [self.obstacles_sprites], "invisible")
                 continue
 
-            config = STYLE_CONFIG.get(style)
-            if not config:
-                continue
-
-            tileset = self.tilesets[config["tileset"]]
-            groups_fn = config["groups"]
-            z = config["z"]
-            sprite_type = config["type"]
+            config = MAP_FLOOR_CONFIG.get(style)
 
             for row_index, row in enumerate(layout):
                 for col_index, cell in enumerate(row):
@@ -349,15 +373,33 @@ class Level:
                     x = col_index * TILESIZE
                     y = row_index * TILESIZE
 
-                    for tile_index, tile_id in self.normalize_cell(cell):
-                        Tile(
-                            (x, y),
-                            groups_fn(self),
-                            sprite_type,
-                            tile_id,  # <- agora vem do building
-                            tileset[tile_index],
-                            z_offset=z
-                        )
+                    # FLOOR
+                    if config:
+                        for tileset_key, tile_index, tile_id, _ in self.normalize_cell(
+                            cell,
+                            config["tileset"],
+                            config
+                        ):
+                            Tile(
+                                (x, y),
+                                config["groups"](self),
+                                config["type"],
+                                tile_id,
+                                self.tilesets[tileset_key][tile_index],
+                                z_offset=config["z"]
+                            )
+
+                    # BUILDINGS
+                    else:
+                        for tileset_key, tile_index, tile_id, part_config in self.normalize_cell(cell):
+                            Tile(
+                                (x, y),
+                                part_config["groups"](self),
+                                part_config["type"],
+                                tile_id,
+                                self.tilesets[tileset_key][tile_index],
+                                z_offset=part_config["z"]
+                            )
                         
         self.player = Player(
             (
@@ -408,27 +450,36 @@ class Level:
                     )
     
 
-    def normalize_cell(self, cell):
+    def normalize_cell(self, cell, default_tileset=None, default_config=None):
         if cell == -1:
             return []
 
         result = []
 
-        def process(item, tile_id=None):
-            # caso (tile, id)
+        def process(item, tile_id=None, tileset_key=None, config=None):
             if isinstance(item, tuple):
-                tile, tid = item
-                process(tile, tid)
+                if len(item) == 4:
+                    ts, tile, tid, cfg = item
+                    process(tile, tid, ts, cfg)
+                elif len(item) == 3:
+                    ts, tile, tid = item
+                    process(tile, tid, ts, config)
+                elif len(item) == 2:
+                    tile, tid = item
+                    process(tile, tid, tileset_key, config)
                 return
 
-            # caso lista de tiles
             if isinstance(item, list):
                 for sub in item:
-                    process(sub, tile_id)
+                    process(sub, tile_id, tileset_key, config)
                 return
 
-            # caso int
-            result.append((item, tile_id))
+            result.append((
+                tileset_key or default_tileset,
+                item,
+                tile_id,
+                config or default_config
+            ))
 
         process(cell)
         return result
@@ -471,8 +522,8 @@ class Level:
         if style == 'heal':
             self.magic_player.heal(self.player, strenght, cost, [self.visible_sprites])
 
-        if style == 'fireball':
-            pass
+        if style == 'flame':
+            self.magic_player.flame(self.player, cost, [self.visible_sprites, self.attack_sprites])
 
 
     def destroy_attack(self):
