@@ -38,3 +38,26 @@ class MagicPlayer:
                 y = player.dmg_hitbox.centery + offset_y + randint(-TILESIZE // 3, TILESIZE // 3)
             
             self.animation_player.create_particles((x, y), 120, 0, 'flame', groups, 'flame')
+    
+
+    def fireball(self, player, cost, groups, obstacles_sprites, attackable_sprites):
+
+        player.energy -= cost
+
+        if player.direction_row == 0: direction = pygame.math.Vector2(0, -1)
+        elif player.direction_row == 1: direction = pygame.math.Vector2(-1, 0)
+        elif player.direction_row == 2: direction = pygame.math.Vector2(0, 1)
+        else: direction = pygame.math.Vector2(1, 0)
+
+        if direction.x: # horizontal
+            offset_x = direction.x * TILESIZE
+            x = player.dmg_hitbox.centerx + offset_x
+            y = player.dmg_hitbox.centery
+        else: # vertical
+            offset_y = direction.y * TILESIZE
+            x = player.dmg_hitbox.centerx
+            y = player.dmg_hitbox.centery + offset_y
+        
+        damage = MAGIC_DATA['fireball']['strenght']
+
+        self.animation_player.create_projectile((x, y), 'fireball', damage, 8, direction, player.direction_row, 50, groups, obstacles_sprites, attackable_sprites, 'fireball')

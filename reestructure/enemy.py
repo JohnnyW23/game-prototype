@@ -5,7 +5,7 @@ from debug import debug
 
 
 class Enemy(Entity):
-    def __init__(self, name, id, pos, groups, path, obstacle_sprites, damage_player):
+    def __init__(self, name, id, pos, groups, path, obstacles_sprites, damage_player, add_points):
         super().__init__(pos, groups, path, z_offset=0)
 
         # general setup
@@ -14,14 +14,15 @@ class Enemy(Entity):
 
         # movement
         self.rect = self.image.get_rect(topleft = pos)
-        self.obstacle_sprites = obstacle_sprites
+        self.obstacles_sprites = obstacles_sprites
         self.moving = False
 
         # stats
         self.name = name
         enemy_info = ENEMY_DATA[self.name]
         self.health = enemy_info['health']
-        self.exp = enemy_info['exp']
+        self.echoes = enemy_info['echoes']
+        self.proficiency = enemy_info['proficiency']
         self.speed = self.set_speed()
         self.damage = enemy_info['damage']
         self.resistance = enemy_info['resistance']
@@ -36,6 +37,7 @@ class Enemy(Entity):
         self.attack_cooldown = enemy_info['attack_cooldown']
         self.damage_player = damage_player
         self.dying = False
+        self.add_points = add_points
 
         # invincibility timer
         self.vulnerable = True
@@ -71,11 +73,11 @@ class Enemy(Entity):
             self.moving = False
             direction = pygame.math.Vector2()
     
-
         return (distance, direction)
     
 
     def get_status(self, player):
+        from random import randint
 
         if self.attacking or self.health <= 0 or self.dying:
             return
@@ -91,7 +93,6 @@ class Enemy(Entity):
     
 
     def actions(self, player):
-        
         if self.mode == 'idle' or self.dying:
             self.direction = pygame.math.Vector2()
         
@@ -114,7 +115,7 @@ class Enemy(Entity):
                 self.attacking = True
                 self.can_attack = False
                 self.attack_time = pygame.time.get_ticks()
-                self.damage_player(self.damage, self.attack_type)
+                self.damage_player(self.damage)
 
     
     def set_mode(self, mode):
@@ -226,6 +227,7 @@ class Enemy(Entity):
             self.attacking = False
             self.set_mode('hurt')
             self.direction_row = 0
+            self.add_points(self.echoes, self.proficiency)
     
 
     def hit_reaction(self, player):

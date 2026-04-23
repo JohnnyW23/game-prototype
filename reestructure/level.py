@@ -446,7 +446,8 @@ class Level:
                         [self.visible_sprites, self.attackable_sprites],
                         ENEMY_DATA[name]['graphic'],
                         self.obstacles_sprites,
-                        self.damage_player
+                        self.damage_player,
+                        self.add_points
                     )
     
 
@@ -524,6 +525,9 @@ class Level:
 
         if style == 'flame':
             self.magic_player.flame(self.player, cost, [self.visible_sprites, self.attack_sprites])
+        
+        if style == 'fireball':
+            self.magic_player.fireball(self.player, cost, [self.visible_sprites, self.attack_sprites], self.obstacles_sprites, self.attackable_sprites)
 
 
     def destroy_attack(self):
@@ -559,18 +563,43 @@ class Level:
                                 pos = target_sprite.rect.center
                                 self.animation_player.create_particles(pos, 50, 0, 'dust', [self.visible_sprites])
                                 sprite.kill()
+
+                                if attack_sprite.sprite_type == 'fireball':
+                                    attack_sprite.kill()
                     
                     else:
                         target_sprite.get_damage(self.player, attack_sprite.sprite_type)
 
 
-    def damage_player(self, amount, attack_type):
+    def damage_player(self, amount):
         if self.player.vulnerable:
             self.player.health -= amount
             self.player.vulnerable = False
             self.player.hurt_time = pygame.time.get_ticks()
             # spawn particles
 
+
+    def add_points(self, echoes, proficiency):
+        from random import randint
+
+
+        min_echoes = echoes[0]
+        max_echoes = echoes[1]
+        echoes_amount = randint(min_echoes, max_echoes)
+        min_prof = proficiency[0]
+        max_prof = proficiency[1]
+        proficiency_amount = randint(min_prof, max_prof)
+        self.player.echoes += echoes_amount
+        self.player.proficiency += proficiency_amount
+
+        if self.player.proficiency >= self.player.max_proficiency:
+            self.player.level += 1
+            difference = self.player.proficiency - self.player.max_proficiency
+
+            self.player.max_proficiency = int(self.player.max_proficiency * 1.3)
+            self.player.proficiency = difference
+
+            self.animation_player.create_particles(self.player.dmg_hitbox.center, 50, 2, 'level_up', [self.visible_sprites])
 
 
     def run(self):

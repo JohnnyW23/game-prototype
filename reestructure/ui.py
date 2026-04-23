@@ -10,6 +10,7 @@ class UI:
         # bar setup
         self.health_bar_rect = pygame.Rect(10, 10, HEALTH_BAR_WIDTH, BAR_HEIGHT)
         self.energy_bar_rect = pygame.Rect(10, 35, ENERGY_BAR_WIDTH, BAR_HEIGHT)
+        self.proficiency_bar_rect = pygame.Rect(10, 695, PROFICIENCY_BAR_WIDTH, PROFICIENCY_BAR_HEIGHT)
 
 
     def show_bar(self, current_amount, max_amount, bg_rect, color):
@@ -28,20 +29,29 @@ class UI:
         pygame.draw.rect(self.display_surface, UI_BORDER_COLOR, bg_rect, 2, border_radius=radius)
 
 
-    def show_exp(self, exp):
-        radius = 2
-        exp_font = pygame.font.Font(UI_FONT, 14)
-        text_surf = exp_font.render(f'{str(int(exp))} XP', False, TEXT_COLOR)
-        text_rect = text_surf.get_rect(topleft = (13, 68))
+    def show_text(self, text, topleft_x, topleft_y, rect_color, border_color, border_radius):
+        echoes_font = pygame.font.Font(UI_FONT, 14)
+        text_surf = echoes_font.render(text, False, TEXT_COLOR)
+        text_rect = text_surf.get_rect(topleft = (topleft_x, topleft_y))
 
-        pygame.draw.rect(self.display_surface, UI_BG_COLOR, text_rect.inflate(10, 10), border_radius = radius)
+        pygame.draw.rect(self.display_surface, rect_color, text_rect.inflate(10, 10),
+                         border_top_left_radius=border_radius[0],
+                         border_top_right_radius=border_radius[1],
+                         border_bottom_right_radius=border_radius[2],
+                         border_bottom_left_radius=border_radius[3]
+                        )
         self.display_surface.blit(text_surf, text_rect)
-        pygame.draw.rect(self.display_surface, UI_BORDER_COLOR, text_rect.inflate(10, 10), 1, border_radius = radius)
+        pygame.draw.rect(self.display_surface, border_color, text_rect.inflate(10, 10), 1,
+                         border_top_left_radius=border_radius[0],
+                         border_top_right_radius=border_radius[1],
+                         border_bottom_right_radius=border_radius[2],
+                         border_bottom_left_radius=border_radius[3]
+                        )
     
 
     def selection_box(self, left, has_switched):
         y = self.display_surface.get_size()[1]
-        bg_rect = pygame.Rect(left, y - ITEM_BOX_SIZE - 10, ITEM_BOX_SIZE, ITEM_BOX_SIZE)
+        bg_rect = pygame.Rect(left, y - ITEM_BOX_SIZE - 35, ITEM_BOX_SIZE, ITEM_BOX_SIZE)
         pygame.draw.rect(self.display_surface, UI_BG_COLOR, bg_rect)
         if has_switched:
             pygame.draw.rect(self.display_surface, UI_BORDER_COLOR_ACTIVE, bg_rect, 2)
@@ -77,11 +87,15 @@ class UI:
 
         self.display_surface.blit(frame, magic_rect)
 
+
     def display(self, player):
         self.show_bar(player.health, player.stats['health'], self.health_bar_rect, HEALTH_COLOR)
         self.show_bar(player.energy, player.stats['energy'], self.energy_bar_rect, ENERGY_COLOR)
 
-        self.show_exp(player.exp)
+        self.show_text(f"{str(int(player.echoes))} Echoes", 15, 590, UI_BG_COLOR, UI_BORDER_COLOR, [2, 2, 2, 2])
 
         self.weapon_overlay(player.weapon_name, not player.can_switch_weapon)
         self.magic_overlay(player.magic_name, not player.can_switch_magic)
+        
+        self.show_text(f"Level {str(int(player.level))}", 163, 675, UI_BORDER_COLOR, UI_BORDER_COLOR, [2, 2, 2, 2])
+        self.show_bar(player.proficiency, player.max_proficiency, self.proficiency_bar_rect, PROFICIENCY_COLOR)

@@ -4,31 +4,33 @@ from settings import *
 from debug import debug
 
 class Player(Entity):
-    def __init__(self, pos, groups, path, obstacle_sprites, create_attack, destroy_attack, create_magic):
+    def __init__(self, pos, groups, path, obstacles_sprites, create_attack, destroy_attack, create_magic):
         super().__init__(pos, groups, path, z_offset=0)
         
         # map interaction
-        self.obstacle_sprites = obstacle_sprites
+        self.obstacles_sprites = obstacles_sprites
 
         # attacking data
         self.attacking = False
         self.attack_type = 'slash'
         self.combat_mode_cooldown = 2500
         self.attack_time = {
-            'slash': -400,
+            'slash': -500,
             'halfslash': -200,
             'backslash': -1500,
             'shoot': -800,
             'flame': -12000,
-            'heal': -500
+            'heal': -500,
+            'fireball': -5000
         }
         self.attack_cooldown = {
-            'slash': 400,
+            'slash': 500,
             'halfslash': 200,
             'backslash': 1500,
             'shoot': 800,
             'flame': 5000,
-            'heal': 500
+            'heal': 500,
+            'fireball': 5000
         }
 
         # weapon data
@@ -76,14 +78,18 @@ class Player(Entity):
             'energy': 60,
             'attack': 10,
             'magic': 4,
-            'speed': 2
+            'speed_walk': 2,
+            'speed_run': 4
         }
         self.health = self.stats['health']
         self.energy = self.stats['energy']
         self.attack = self.stats['attack']
         self.magic = self.stats['magic']
-        self.speed = self.stats['speed']
-        self.exp = 0
+        self.speed = self.stats['speed_walk']
+        self.max_proficiency = 100
+        self.proficiency = 99
+        self.echoes = 0
+        self.level = 1
 
         # damage timer
         self.vulnerable = True
@@ -139,10 +145,10 @@ class Player(Entity):
         if self.direction.length_squared() > 0:
             if self.is_running:
                 self.set_mode(f"run")
-                self.speed = 4
+                self.speed = self.stats['speed_run']
             else:
                 self.set_mode(f"walk_{self.weapon_name}")
-                self.speed = 2
+                self.speed = self.stats['speed_walk']
         else:
             if self.mode != f"combat_{self.weapon_name}":
                 self.set_mode(f"idle_{self.weapon_name}")
@@ -168,7 +174,7 @@ class Player(Entity):
                 self.attack_triggered = True
                 self.set_mode(f"halfslash_{self.weapon_name}")
 
-                multiplier -= 0.2
+                multiplier -= 0.5
 
 
             elif keys[pygame.K_l] and self.can_use('backslash', pygame.time.get_ticks()):

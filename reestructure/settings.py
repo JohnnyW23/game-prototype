@@ -7,6 +7,8 @@ TILESIZE = 32
 BAR_HEIGHT = 20
 HEALTH_BAR_WIDTH = 200
 ENERGY_BAR_WIDTH = 150
+PROFICIENCY_BAR_WIDTH = 300
+PROFICIENCY_BAR_HEIGHT = 15
 ITEM_BOX_SIZE = 64
 UI_FONT = 'assets/fonts/DejaVuSans.ttf'
 UI_FONT_SIZE = 18
@@ -14,6 +16,7 @@ UI_FONT_SIZE = 18
 # UI colors
 HEALTH_COLOR = "#c50000"
 ENERGY_COLOR = "#00aac0"
+PROFICIENCY_COLOR = "#360021"
 UI_BORDER_COLOR_ACTIVE = 'gold'
 
 # general colors
@@ -34,7 +37,7 @@ MODES = {
     "run": {"frames": 8, "animation_speed": 70},
     "sit": {"frames": 1, "animation_speed": 1},
     "slash": {"frames": 5, "animation_speed": 55},
-    "spellcast": {"frames": 7, "animation_speed": {"flame": 300, "heal": 65}},
+    "spellcast": {"frames": 7, "animation_speed": {"flame": 300, "heal": 65, "fireball": 150}},
     "walk": {"frames": 9, "animation_speed": 120},
     "shoot": {"frames": 13, "animation_speed": 55},
     "thump": {"frames": 6, "animation_speed": 70}
@@ -44,12 +47,12 @@ MODES = {
 WEAPON_DATA = {
     "brass_sword": {
         "damage": 8,
-        "cooldown": 200,
+        "cooldown": 300,
         "graphic": 'assets/characters/weapons/brass_sword.png'
     },
     "silver_sword": {
         "damage": 12,
-        "cooldown": 500,
+        "cooldown": 700,
         "graphic": 'assets/characters/weapons/silver_sword.png'
     },
     "normal_bow": {
@@ -76,6 +79,15 @@ MAGIC_DATA = {
         "cooldown": 500,
         "start_cooldown": 0,
         "graphic": 'assets/characters/magics/heal.png',
+        "image_frame": 3,
+        "image_layer": 3
+    },
+    "fireball": {
+        "strenght": 20,
+        "cost": 10,
+        "cooldown": 5000,
+        "start_cooldown": 1000,
+        "graphic": 'assets/characters/magics/fireball.png',
         "image_frame": 3,
         "image_layer": 3
     }
@@ -110,7 +122,8 @@ ENEMY_DATA = {
     'zombie1': {
         'spawn_chance': 0.4,
         'health': 100,
-        'exp': 10,
+        'echoes': [5, 8],
+        'proficiency': [5, 8],
         'damage': 10,
         'attack_type': 'thump',
         'attack_sound': 'assets/audio/attack/thump.mp3',
@@ -124,7 +137,8 @@ ENEMY_DATA = {
     'zombie2': {
         'spawn_chance': 0.4,
         'health': 100,
-        'exp': 10,
+        'echoes': [5, 8],
+        'proficiency': [5, 8],
         'damage': 10,
         'attack_type': 'thump',
         'attack_sound': 'assets/audio/attack/thump.mp3',
@@ -138,7 +152,8 @@ ENEMY_DATA = {
     'zombie_iron_sword': {
         'spawn_chance': 0.2,
         'health': 150,
-        'exp': 15,
+        'echoes': [12, 15],
+        'proficiency': [10, 13],
         'damage': 15,
         'attack_type': 'slash',
         'attack_sound': 'assets/audio/attack/slash.mp3',
